@@ -3,9 +3,11 @@ package pb.calc;
 /** 
  * 
  *  An immutable object representing one playing card. 
- *        
+ *  This implements Comparable interface because we want to compare multiple cards.
+ * 
+ *  @author Sourav
  */
-public class card {
+public class card implements Comparable<card>{
     
     private final String suit;
     private final int order;
@@ -120,6 +122,11 @@ public class card {
     public boolean isEqual(card thatCard){
         return this.isEqualValue(thatCard) 
                 && this.isSameSuit(thatCard);
+    }
+
+    @Override
+    public int compareTo(card arg0) {
+        return this.order;
     }
     
 }
