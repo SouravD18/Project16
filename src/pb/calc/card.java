@@ -39,6 +39,14 @@ public class card {
     }
     
     /**
+     * 
+     */
+    public card(card givenCard){
+        this.suit = givenCard.returnSuit();
+        this.order = givenCard.returnNumber();
+    }
+    
+    /**
      * check the rep
      */
     private void checkRep(){
@@ -60,7 +68,7 @@ public class card {
     
     /**
      * 
-     * @return the suit string of the card
+     * @return "s" for Spades; "h" for Hearts; "c" for Clubs; "d" for Diamonds
      */
     public String returnSuit(){
         return this.suit;
@@ -102,6 +110,16 @@ public class card {
      */
     public boolean isSameSuit(card thatCard){
         return this.returnSuit().equals(thatCard.returnSuit());
+    }
+    
+    /**
+     *  Decides whether two cards are same or not
+     * @param thatCard
+     * @return True is both cards are same
+     */
+    public boolean isEqual(card thatCard){
+        return this.isEqualValue(thatCard) 
+                && this.isSameSuit(thatCard);
     }
     
 }
