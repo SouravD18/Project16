@@ -7,9 +7,11 @@ import java.util.*;
  * Note: if you want subarrays, use Arrays.copyOfRange
  */
 public class ArrayUtil {
-
     /**
-     * join two arrays together
+     * Join two arrays together
+     * @param a first array
+     * @param b second array
+     * @return Conjoined in the order they were found in
      */
     public static <T> T[] join(T[] a, T[] b) {
         T[] x = Arrays.copyOf(a, a.length + b.length);
@@ -20,8 +22,13 @@ public class ArrayUtil {
     }
 
     /**
-     * pick a value from a (max length 63) that hasn't been picked before
-     * according to picked[0] and update picked[0]
+     * Pick an element of a (max length 63) that hasn't been picked before
+     * Picked[0] contains the information, make sure to associate the 
+     * input String array with picked (and use it every time) 
+     * @param r Random generator
+     * @param a Array to pick element out of
+     * @param picked 
+     * @return random String from a
      */
     public static String pick(Random r, String[] a, long[] picked) {
         if (a.length > 63) {
@@ -41,7 +48,7 @@ public class ArrayUtil {
     }
     
     /**
-     * shuffle array
+     * Shuffles the array randomly (modifies it)
      */
     public static void shuffle(Object[] a, Random r) {
         for (int n = 0; n < a.length; n++) {
@@ -54,35 +61,23 @@ public class ArrayUtil {
     }
     
     /**
-     * subtract b from a
+     * Removes all elements in b from a and returns a *new* array
+     * Previous arrays will never be modified
      */
     public static String[] sub(String[] a, String[] b) {
-        // really inefficient...
-        TreeSet<String> s = new TreeSet<>(Arrays.asList(a));
-        s.removeAll(Arrays.asList(b));
-        if (s.size() != a.length) {
-            //System.out.println("sub: " + Arrays.toString(a) + " - " + Arrays.toString(b) + " = " + s);
-            return s.toArray(new String[s.size()]);
-        } else {
-            return a;
-        }
-    }
-    
-    public static void main (String[] args) {
-        Random r = new Random();
-        for (int n = 0; n < 10; n++) {
-            int[] a = new int[r.nextInt(5) + 1];
-            for (int i = 0; i < a.length; i++) {
-                a[i] = r.nextInt(10);
-            }
-            int[] b = a.clone();
-            sort(b);
-            System.out.println(Arrays.toString(a) + " => " + Arrays.toString(b));
-        }
+        Set<String> newSet = new HashSet<>();
+        for (String s: a)
+            newSet.add(s);
+        for (String s: b)
+            newSet.remove(s);
+        String[] c = new String[newSet.size()];
+        newSet.toArray(c);
+        return c;
     }
     
     /**
-     * sort a small array of numbers, more efficiently than Arrays.sort
+     * Sorts array a more efficiently than the default Java implementation
+     * @param a
      */
     public static void sort (int[] a) {
         // simple insertion sort derived from wikipedia
@@ -97,4 +92,19 @@ public class ArrayUtil {
         }
     }
     
+    public static void main (String[] args) {
+//        Random r = new Random();
+//        for (int n = 0; n < 10; n++) {
+//            int[] a = new int[r.nextInt(5) + 1];
+//            for (int i = 0; i < a.length; i++) {
+//                a[i] = r.nextInt(10);
+//            }
+//            int[] b = a.clone();
+//            sort(b);
+//            System.out.println(Arrays.toString(a) + " => " + Arrays.toString(b));
+//        }
+        String[] a = {"Jack", "box", "hey"};
+        String[] b = {"Jack", "box", "hey", "2"};
+        System.out.println(Arrays.toString(sub(a, b)));
+    }
 }
