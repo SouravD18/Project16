@@ -1,4 +1,4 @@
-package pokerbots.player;
+package player;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,6 +39,9 @@ public class Player {
 	// current number of the hand
 	private int handId;
 	
+	// List of names. First name is our bot's name. Second is for opponent
+	private String[] names;
+	
 	
 	public Player(PrintWriter output, BufferedReader input) {
 		this.outStream = output;
@@ -52,6 +55,7 @@ public class Player {
 		this.timeBank = .1;
 		this.handId = 0;
 		this.boardCards = new String[5];
+		this.names = new String[2];
 	}
 	
 	public void run() {
@@ -60,6 +64,7 @@ public class Player {
 			// Block until engine sends us a packet; read it into input.
 			while ((input = inStream.readLine()) != null) {
 			    // Changes made by: sourav18
+			    // We call this function to perform parsing
 			    parsePacket(input);
 			    
 				// Here is where you should implement code to parse the packets
@@ -99,6 +104,10 @@ public class Player {
 	}
 	
     public void parsePacket(String packet) throws IOException{
+        /**
+         * This function parse the necessary packets accordingly
+         */
+        
         String[] components = packet.split(" ");
         String word = components[0];
    
@@ -122,6 +131,8 @@ public class Player {
         int stackSize = Integer.parseInt(word[3]);
         int bb = Integer.parseInt(word[4]);
         
+        this.names[0] = myName;
+        this.names[1] = opponentName;
         this.numberOfHands = Integer.parseInt(word[5]);
         this.timeBank = Integer.parseInt(word[6]);
         
@@ -167,9 +178,9 @@ public class Player {
         
         int numLastActions = Integer.parseInt(word[index]);
         index++;
-        String[] lastActions = new String[numLastActions];
+        Action[] lastActions = new Action[numLastActions];
         for(int j = 0;j < numLastActions; j++){
-            lastActions[j] = word[index];
+            lastActions[j] = new Action(word[index]);
             index++;
         }
         
@@ -182,6 +193,7 @@ public class Player {
         }
         
         this.timeBank = Integer.parseInt(word[index]);
+        
     }
     
     private void processHandOver(String word[]){
@@ -199,9 +211,9 @@ public class Player {
         
         int numLastActions = Integer.parseInt(word[index]);
         index++;
-        String[] lastActions = new String[numLastActions];
+        Action[] lastActions = new Action[numLastActions];
         for(int j = 0;j < numLastActions; j++){
-            lastActions[j] = word[index];
+            lastActions[j] = new Action(word[index]);
             index++;
         }
         
