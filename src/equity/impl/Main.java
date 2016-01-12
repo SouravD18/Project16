@@ -46,6 +46,7 @@ public class Main {
         String[] myCards = {"Td","4c","7h","As"};
         String[] opponentCards = {"Kc","Qh", "3s", "5s"};
         
-        double a = ((new Main()).equity(board, myCards, opponentCards) );
+        double a = ((new Main()).equity(board, myCards, opponentCards));
+        System.out.println(a);
     }
 }

@@ -42,6 +42,8 @@ public class Player {
 	// List of names. First name is our bot's name. Second is for opponent
 	private String[] names;
 	
+	// Brain
+	private Brain myBrain;
 	
 	public Player(PrintWriter output, BufferedReader input) {
 		this.outStream = output;
@@ -56,6 +58,7 @@ public class Player {
 		this.handId = 0;
 		this.boardCards = new String[5];
 		this.names = new String[2];
+		this.myBrain = new Brain();
 	}
 	
 	public void run() {
@@ -69,7 +72,8 @@ public class Player {
 			    
 				// Here is where you should implement code to parse the packets
 				// from the engine and act on it.
-				System.out.println(input);
+				
+			    System.out.println(input);
 				
 				String word = input.split(" ")[0];
 				if ("GETACTION".compareToIgnoreCase(word) == 0) {
@@ -80,7 +84,11 @@ public class Player {
 					// illegal action.
 				    
 				    // FOLDERBOT works
-					outStream.println("CHECK");
+				    // Checking Folderbot:
+				    
+				    String action = this.myBrain.decision();
+					outStream.println(action);
+				    
 				} else if ("REQUESTKEYVALUES".compareToIgnoreCase(word) == 0) {
 					// At the end, engine will allow bot to send key/value pairs to store.
 					// FINISH indicates no more to store.
@@ -134,9 +142,13 @@ public class Player {
         this.names[0] = myName;
         this.names[1] = opponentName;
         this.numberOfHands = Integer.parseInt(word[5]);
-        this.timeBank = Integer.parseInt(word[6]);
+        this.timeBank = Double.parseDouble(word[6]);
         
         //// Reset Historian!!
+        
+        // Call the brain saying that new game is starting.
+        
+        this.myBrain.newGame(myName, opponentName, this.numberOfHands, this.timeBank);
     }
     
     private void processKeyValue(String word[]){
@@ -163,6 +175,9 @@ public class Player {
         this.myBank = Integer.parseInt(word[7]);
         this.otherBank = Integer.parseInt(word[8]);
         this.timeBank = Double.parseDouble(word[9]);
+        
+        this.myBrain.newHand(this.handId, this.isButton, this.myHoleCards, 
+                this.myBank, this.otherBank, this.timeBank);
     }
     
     private void processGetAction(String word[]){
@@ -192,18 +207,21 @@ public class Player {
             index++;
         }
         
-        this.timeBank = Integer.parseInt(word[index]);
-        
+        this.timeBank = Double.parseDouble(word[index]);
+        this.myBrain.getAction(potSize, numBoardCards, 
+                boardCards, numLastActions, lastActions, 
+                numLegalActions, legalActions, this.timeBank);
     }
     
     private void processHandOver(String word[]){
         this.myBank = Integer.parseInt(word[1]);
         this.otherBank = Integer.parseInt(word[2]);
         
-        int numBoardCards = Integer.parseInt(word[2]);
+        int numBoardCards = Integer.parseInt(word[3]);
+        
         String[] boardCards = new String[numBoardCards];
         
-        int index = 3;
+        int index = 4;
         for(int i = 0; i < numBoardCards; i++){
             boardCards[i] = word[index];
             index++;
@@ -217,6 +235,6 @@ public class Player {
             index++;
         }
         
-        this.timeBank = Integer.parseInt(word[index]);
+        this.timeBank = Double.parseDouble(word[index]);
     }
 }
