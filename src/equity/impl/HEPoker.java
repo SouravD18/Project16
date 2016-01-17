@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import equity.*;
+import stevebrecher.Card;
+import stevebrecher.HandEval;
 
 /**
  * Hold'em and Omaha hand analysis, using a combinatorial number system.
@@ -109,83 +111,90 @@ public class HEPoker extends Poker {
      */
     private int heValue(final Value v, final String[] board, final String[] hole, final String[] temp) {
         if (board.length == 5 && hole.length == 4){
+            Card[] boardCards = new Card[5];
+            Card[] holeCards = new Card[4];
+            for (int i = 0; i < 5; i++)
+                boardCards[i] = new Card(board[i]);
+            for (int i = 0; i < 4; i++)
+                holeCards[i] = new Card(hole[i]);
+            
             int hv = 0;
-            String[][] handCombos = { //essentially all the hand combinations are pre-memorized here
+            Card[][] handCombos = { //essentially all the hand combinations are pre-memorized here
                     //makes for slightly faster (~3ms) code
-                    {board[0], board[1], board[2], hole[0], hole[1]},
-                    {board[0], board[1], board[2], hole[0], hole[2]},
-                    {board[0], board[1], board[2], hole[0], hole[3]},
-                    {board[0], board[1], board[2], hole[1], hole[2]},
-                    {board[0], board[1], board[2], hole[1], hole[3]},
-                    {board[0], board[1], board[2], hole[2], hole[3]},
+                    {boardCards[0], boardCards[1], boardCards[2], holeCards[0], holeCards[1]},
+                    {boardCards[0], boardCards[1], boardCards[2], holeCards[0], holeCards[2]},
+                    {boardCards[0], boardCards[1], boardCards[2], holeCards[0], holeCards[3]},
+                    {boardCards[0], boardCards[1], boardCards[2], holeCards[1], holeCards[2]},
+                    {boardCards[0], boardCards[1], boardCards[2], holeCards[1], holeCards[3]},
+                    {boardCards[0], boardCards[1], boardCards[2], holeCards[2], holeCards[3]},
                     
-                    {board[0], board[1], board[3], hole[0], hole[1]},
-                    {board[0], board[1], board[3], hole[0], hole[2]},
-                    {board[0], board[1], board[3], hole[0], hole[3]},
-                    {board[0], board[1], board[3], hole[1], hole[2]},
-                    {board[0], board[1], board[3], hole[1], hole[3]},
-                    {board[0], board[1], board[3], hole[2], hole[3]},
+                    {boardCards[0], boardCards[1], boardCards[3], holeCards[0], holeCards[1]},
+                    {boardCards[0], boardCards[1], boardCards[3], holeCards[0], holeCards[2]},
+                    {boardCards[0], boardCards[1], boardCards[3], holeCards[0], holeCards[3]},
+                    {boardCards[0], boardCards[1], boardCards[3], holeCards[1], holeCards[2]},
+                    {boardCards[0], boardCards[1], boardCards[3], holeCards[1], holeCards[3]},
+                    {boardCards[0], boardCards[1], boardCards[3], holeCards[2], holeCards[3]},
                     
-                    {board[0], board[1], board[4], hole[0], hole[1]},
-                    {board[0], board[1], board[4], hole[0], hole[2]},
-                    {board[0], board[1], board[4], hole[0], hole[3]},
-                    {board[0], board[1], board[4], hole[1], hole[2]},
-                    {board[0], board[1], board[4], hole[1], hole[3]},
-                    {board[0], board[1], board[4], hole[2], hole[3]},
+                    {boardCards[0], boardCards[1], boardCards[4], holeCards[0], holeCards[1]},
+                    {boardCards[0], boardCards[1], boardCards[4], holeCards[0], holeCards[2]},
+                    {boardCards[0], boardCards[1], boardCards[4], holeCards[0], holeCards[3]},
+                    {boardCards[0], boardCards[1], boardCards[4], holeCards[1], holeCards[2]},
+                    {boardCards[0], boardCards[1], boardCards[4], holeCards[1], holeCards[3]},
+                    {boardCards[0], boardCards[1], boardCards[4], holeCards[2], holeCards[3]},
                     
-                    {board[0], board[2], board[3], hole[0], hole[1]},
-                    {board[0], board[2], board[3], hole[0], hole[2]},
-                    {board[0], board[2], board[3], hole[0], hole[3]},
-                    {board[0], board[2], board[3], hole[1], hole[2]},
-                    {board[0], board[2], board[3], hole[1], hole[3]},
-                    {board[0], board[2], board[3], hole[2], hole[3]},
+                    {boardCards[0], boardCards[2], boardCards[3], holeCards[0], holeCards[1]},
+                    {boardCards[0], boardCards[2], boardCards[3], holeCards[0], holeCards[2]},
+                    {boardCards[0], boardCards[2], boardCards[3], holeCards[0], holeCards[3]},
+                    {boardCards[0], boardCards[2], boardCards[3], holeCards[1], holeCards[2]},
+                    {boardCards[0], boardCards[2], boardCards[3], holeCards[1], holeCards[3]},
+                    {boardCards[0], boardCards[2], boardCards[3], holeCards[2], holeCards[3]},
                     
-                    {board[0], board[2], board[4], hole[0], hole[1]},
-                    {board[0], board[2], board[4], hole[0], hole[2]},
-                    {board[0], board[2], board[4], hole[0], hole[3]},
-                    {board[0], board[2], board[4], hole[1], hole[2]},
-                    {board[0], board[2], board[4], hole[1], hole[3]},
-                    {board[0], board[2], board[4], hole[2], hole[3]},
+                    {boardCards[0], boardCards[2], boardCards[4], holeCards[0], holeCards[1]},
+                    {boardCards[0], boardCards[2], boardCards[4], holeCards[0], holeCards[2]},
+                    {boardCards[0], boardCards[2], boardCards[4], holeCards[0], holeCards[3]},
+                    {boardCards[0], boardCards[2], boardCards[4], holeCards[1], holeCards[2]},
+                    {boardCards[0], boardCards[2], boardCards[4], holeCards[1], holeCards[3]},
+                    {boardCards[0], boardCards[2], boardCards[4], holeCards[2], holeCards[3]},
                     
-                    {board[0], board[3], board[4], hole[0], hole[1]},
-                    {board[0], board[3], board[4], hole[0], hole[2]},
-                    {board[0], board[3], board[4], hole[0], hole[3]},
-                    {board[0], board[3], board[4], hole[1], hole[2]},
-                    {board[0], board[3], board[4], hole[1], hole[3]},
-                    {board[0], board[3], board[4], hole[2], hole[3]},
+                    {boardCards[0], boardCards[3], boardCards[4], holeCards[0], holeCards[1]},
+                    {boardCards[0], boardCards[3], boardCards[4], holeCards[0], holeCards[2]},
+                    {boardCards[0], boardCards[3], boardCards[4], holeCards[0], holeCards[3]},
+                    {boardCards[0], boardCards[3], boardCards[4], holeCards[1], holeCards[2]},
+                    {boardCards[0], boardCards[3], boardCards[4], holeCards[1], holeCards[3]},
+                    {boardCards[0], boardCards[3], boardCards[4], holeCards[2], holeCards[3]},
                     
-                    {board[1], board[2], board[3], hole[0], hole[1]},
-                    {board[1], board[2], board[3], hole[0], hole[2]},
-                    {board[1], board[2], board[3], hole[0], hole[3]},
-                    {board[1], board[2], board[3], hole[1], hole[2]},
-                    {board[1], board[2], board[3], hole[1], hole[3]},
-                    {board[1], board[2], board[3], hole[2], hole[3]},
+                    {boardCards[1], boardCards[2], boardCards[3], holeCards[0], holeCards[1]},
+                    {boardCards[1], boardCards[2], boardCards[3], holeCards[0], holeCards[2]},
+                    {boardCards[1], boardCards[2], boardCards[3], holeCards[0], holeCards[3]},
+                    {boardCards[1], boardCards[2], boardCards[3], holeCards[1], holeCards[2]},
+                    {boardCards[1], boardCards[2], boardCards[3], holeCards[1], holeCards[3]},
+                    {boardCards[1], boardCards[2], boardCards[3], holeCards[2], holeCards[3]},
                     
-                    {board[1], board[2], board[4], hole[0], hole[1]},
-                    {board[1], board[2], board[4], hole[0], hole[2]},
-                    {board[1], board[2], board[4], hole[0], hole[3]},
-                    {board[1], board[2], board[4], hole[1], hole[2]},
-                    {board[1], board[2], board[4], hole[1], hole[3]},
-                    {board[1], board[2], board[4], hole[2], hole[3]},
+                    {boardCards[1], boardCards[2], boardCards[4], holeCards[0], holeCards[1]},
+                    {boardCards[1], boardCards[2], boardCards[4], holeCards[0], holeCards[2]},
+                    {boardCards[1], boardCards[2], boardCards[4], holeCards[0], holeCards[3]},
+                    {boardCards[1], boardCards[2], boardCards[4], holeCards[1], holeCards[2]},
+                    {boardCards[1], boardCards[2], boardCards[4], holeCards[1], holeCards[3]},
+                    {boardCards[1], boardCards[2], boardCards[4], holeCards[2], holeCards[3]},
                     
-                    {board[1], board[3], board[4], hole[0], hole[1]},
-                    {board[1], board[3], board[4], hole[0], hole[2]},
-                    {board[1], board[3], board[4], hole[0], hole[3]},
-                    {board[1], board[3], board[4], hole[1], hole[2]},
-                    {board[1], board[3], board[4], hole[1], hole[3]},
-                    {board[1], board[3], board[4], hole[2], hole[3]},
+                    {boardCards[1], boardCards[3], boardCards[4], holeCards[0], holeCards[1]},
+                    {boardCards[1], boardCards[3], boardCards[4], holeCards[0], holeCards[2]},
+                    {boardCards[1], boardCards[3], boardCards[4], holeCards[0], holeCards[3]},
+                    {boardCards[1], boardCards[3], boardCards[4], holeCards[1], holeCards[2]},
+                    {boardCards[1], boardCards[3], boardCards[4], holeCards[1], holeCards[3]},
+                    {boardCards[1], boardCards[3], boardCards[4], holeCards[2], holeCards[3]},
                     
-                    {board[2], board[3], board[4], hole[0], hole[1]},
-                    {board[2], board[3], board[4], hole[0], hole[2]},
-                    {board[2], board[3], board[4], hole[0], hole[3]},
-                    {board[2], board[3], board[4], hole[1], hole[2]},
-                    {board[2], board[3], board[4], hole[1], hole[3]},
-                    {board[2], board[3], board[4], hole[2], hole[3]},
+                    {boardCards[2], boardCards[3], boardCards[4], holeCards[0], holeCards[1]},
+                    {boardCards[2], boardCards[3], boardCards[4], holeCards[0], holeCards[2]},
+                    {boardCards[2], boardCards[3], boardCards[4], holeCards[0], holeCards[3]},
+                    {boardCards[2], boardCards[3], boardCards[4], holeCards[1], holeCards[2]},
+                    {boardCards[2], boardCards[3], boardCards[4], holeCards[1], holeCards[3]},
+                    {boardCards[2], boardCards[3], boardCards[4], holeCards[2], holeCards[3]},
             };
             
             //long a = System.nanoTime();
-            for (String[] s: handCombos){
-                final int val = v.value(s);
+            for (Card[] c: handCombos){
+                final int val = HandEval.hand5Eval(HandEval.encode(c));
                 if (val > hv) {
                     hv = val;
                 }

@@ -14,7 +14,7 @@ public class Cmp {
     /**
      * compare by face (ace low) only, highest first
      */
-    public static final Comparator<String> faceCmpAL = new FaceCmp(true, false);
+    public static final Comparator<String> faceCmpAL = new FaceCmp(true);
 }
 
 class CardCmp implements Comparator<String> {
@@ -35,12 +35,9 @@ class CardCmp implements Comparator<String> {
 }
 
 class FaceCmp implements Comparator<String> {
-
     private final int polarity;
-    private final boolean aceHigh;
     
-    public FaceCmp(boolean asc, boolean aceHigh) {
-        this.aceHigh = aceHigh;
+    public FaceCmp(boolean asc) {
         this.polarity = asc ? 1 : -1;
     }
     @Override

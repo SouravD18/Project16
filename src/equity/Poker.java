@@ -205,7 +205,7 @@ public abstract class Poker {
      * Get high value of 5 card hand with type of HI_TYPE
      */
     public static int value (String[] hand) {
-        //XXX: validate(hand); <== hands will no longer be validated!! apparently this costs a LOT
+        //validate(hand); <== hands will no longer be validated!! apparently this costs a LOT
         int p = isPair(hand, true);
         if (p < P_RANK) {
             boolean f = isFlush(hand);
@@ -437,17 +437,20 @@ public abstract class Poker {
      * type
      */
     public static int rank(int value) {
-        int t = value & TYPE;
-        switch (t) {
-            case HI_TYPE:
-                return (value & RANK) >> 20;
-            case AF_LOW_TYPE:
-                return rankLo(value, 5);
-            case DS_LOW_TYPE:
-                return rankLo(value, 7);
-            default:
-                throw new RuntimeException("v=" + Integer.toHexString(value));
-        }
+        return value >> 24;
+            
+        
+//        int t = value & TYPE;
+//        switch (t) {
+//            case HI_TYPE:
+//                return (value & RANK) >> 20;
+//            case AF_LOW_TYPE:
+//                return rankLo(value, 5);
+//            case DS_LOW_TYPE:
+//                return rankLo(value, 7);
+//            default:
+//                throw new RuntimeException("v=" + Integer.toHexString(value));
+//        }
     }
 
     private static int rankLo (int value, int x) {
