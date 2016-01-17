@@ -28,17 +28,15 @@ public class Main {
      *          opponent bot's cards. myCards > 1
      * @return equity of our hand (a double)
      */
-    public double equity(String[] board, String[] myCards, String[] opponentCards){
+    public float equity(String[] board, String[] myCards){
         /// Not sure whether we need to assert or not
         //assert board.length < 6;
         //assert myCards.length > 1;
         //assert opponentCards.length > 1;
 
-        String[][] holeCards = {myCards, opponentCards};
         
-        return ( new HEPoker(true, false) )
-                .equity(board.clone(), holeCards.clone(), new String[]{})[0]
-                .getEquity(Equity.Type.HI_ONLY).total;
+        return ( new HEPoker() )
+                .equity(board.clone(), myCards, new String[]{});
     }
     
     public static void main(String[] args) {
@@ -48,7 +46,7 @@ public class Main {
         
         long startTime = System.nanoTime();
         
-        double a = ((new Main()).equity(board, myCards, opponentCards) );
+        double a = ((new Main()).equity(board, myCards) );
         long endTime = System.nanoTime();
         long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
         System.out.println(a);

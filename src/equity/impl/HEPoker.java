@@ -21,30 +21,24 @@ public class HEPoker extends Poker {
     //
     
     /** must use 2 cards */
-    private final boolean omaha;
     private final int min;
-    private final boolean hilo;
-    private final Value loValue;
 
     /**
      * create holdem equity calculator for given game type
      */
-    public HEPoker(boolean omaha, boolean hilo) {
-        this(omaha, hilo, Value.hiValue, Value.afLow8Value);
+    public HEPoker() {
+        this(Value.hiValue);
     }
     
     /**
      * create holdem equity calculator for given game type
      */
-    public HEPoker(boolean omaha, boolean hilo, Value hi, Value lo) {
+    public HEPoker(Value hi) {
         super(hi);
-        this.omaha = omaha;
-        this.loValue = lo;
         this.min = 2;
-        this.hilo = hilo;
     }
     
-    /** check hole has at least 1 or 2 cards and at most 2 or 4 cards */
+    /** check hole has 4 cards  */
     private void validateHoleCards(String[] hole) {
         final int num = 4;
         if (hole.length != num) {
@@ -52,27 +46,16 @@ public class HEPoker extends Poker {
         }
     }
     
-    @Override
-    public MEquity[] equity(String[] board, String[][] holeCards, String[] blockers) {
-        
-        //System.out.println("holdem/omaha equity: " + Arrays.deepToString(holeCards) + " board: " + Arrays.toString(board) + " blockers: " + Arrays.toString(blockers));
-        
-        validateBoard(board);
-        for (String[] hole : holeCards) {
-            validateHoleCards(hole);
-        }
-        
+    /**
+     *Returns the predicted value of the hand after flop
+     */
+    public float equity(String[] board, String[] myHand, String[] blockers) {       
+
+        validateHoleCards(myHand);
+        String[][] holes = {myHand};
         // cards not used by hands or board
-        final String[] deck = Poker.remdeck(holeCards, board, blockers);
-        
-        if (board.length <= 1) {
-            // monte carlo (random sample boards)
-            return equityImpl(new HEBoardSample(deck, board, 10000), holeCards);
-            
-        } else {
-            // all possible boards
-            return equityImpl(new HEBoardEnum(deck, board), holeCards);
-        }
+        final String[] deck = Poker.remdeck(holes, board, blockers);
+        return equityImpl(new HEBoardEnum(deck, board), myHand);
     }
 
     @Override
@@ -90,63 +73,25 @@ public class HEPoker extends Poker {
     }
     
     /**
-     * Calc exact tex/omaha hand equity for each hand for given board
+     * Calc predicted value of the hand
      */
-    private MEquity[] equityImpl(final HEBoard heboard, final String[][] holeCards) {
-        
-        
-        // note: HL MEquity actually contains 3 equity types, so can be treated as high only
-        final MEquity[] meqs = MEquityUtil.createMEquitiesHL(hilo, holeCards.length, heboard.deck.length, heboard.exact());
-        final int[] hivals = new int[holeCards.length];
+    private float equityImpl(final HEBoard heboard, final String[] myHand) {
+
         final String[] temp = new String[5];
         
-        long startTime = System.nanoTime();
-        // get current high hand values (not equity)
-        if (heboard.current != null) {
-            for (int n = 0; n < holeCards.length; n++) {
-                if (heboard.current.length >= 3) {
-                    hivals[n] = heValue(value, heboard.current, holeCards[n], temp);
-                }
-            }
-            MEquityUtil.updateCurrent(meqs, Equity.Type.HI_ONLY, hivals);
-            
-
-        }
-        long endTime = System.nanoTime();
-        System.out.println((endTime-startTime)/1000000.0);
         
         // get equity
         final int count = heboard.count();
-        final int pick = heboard.pick();
-        int hiloCount = 0;
+        long totalValue = 0;
         
         for (int p = 0; p < count; p++) {
             // get board
             heboard.next();
-            //System.out.println("board p: " + p + " current: " + Arrays.toString(heboard.current) + " next: " + Arrays.toString(heboard.board));
-            
-            // hi equity
-            for (int i = 0; i < holeCards.length; i++) {
-                hivals[i] = heValue(value, heboard.board, holeCards[i], temp);
-            }
-
-
-            
-                // high winner
-            MEquityUtil.updateMEquities(meqs, Equity.Type.HI_ONLY, hivals, null);
+            totalValue += heValue(value, heboard.board, myHand, temp);
          
         }
         
-        long endTime2 = System.nanoTime();
-        System.out.println((endTime2-startTime)/1000000.0);
-
-        MEquityUtil.summariseMEquities(meqs, count, hiloCount);
-        // XXX shouldn't be here, just need to store pick and count on mequity
-        MEquityUtil.summariseOuts(meqs, pick, count);
-//      for(MEquity e: meqs){
-//          System.out.println(e.getEquity(Equity.Type.HI_ONLY).total);
-//      }
-        return meqs;
+        return totalValue/(new Float(count));
     }
     
 

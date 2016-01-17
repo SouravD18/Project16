@@ -544,16 +544,7 @@ public abstract class Poker {
     // instance methods
     //
     
-    /**
-     * Calculate equity for given board and hands.
-     */
-    public final MEquity[] equity(Collection<String> board, Collection<String[]> cards, Collection<String> blockers) {
-        String[] boardArr = board != null ? board.toArray(new String[board.size()]) : null;
-        String[][] cardsArr = cards.toArray(new String[cards.size()][]);
-        String[] blockersArr = blockers.toArray(new String[blockers.size()]);
-        return equity(boardArr, cardsArr, blockersArr);
-    }
-    
+   
     /** primary valuation method */
     protected Value value;
     
@@ -566,10 +557,6 @@ public abstract class Poker {
         return value;
     }
     
-    /**
-     * Calculate equity for given board and hands (implementation)
-     */
-    protected abstract MEquity[] equity(String[] board, String[][] holeCards, String[] blockers);
     
     /**
      * Calculate value of hand. If the hand is invalid (e.g. has board for non
