@@ -205,7 +205,7 @@ public abstract class Poker {
      * Get high value of 5 card hand with type of HI_TYPE
      */
     public static int value (String[] hand) {
-        validate(hand);
+        //XXX: validate(hand); <== hands will no longer be validated!! apparently this costs a LOT
         int p = isPair(hand, true);
         if (p < P_RANK) {
             boolean f = isFlush(hand);
@@ -470,35 +470,6 @@ public abstract class Poker {
     }
     
     /**
-     * return the remaining cards in the deck.
-     * always returns new array
-     */
-    public static String[] remdeck(String[][] aa, String[]... a) {
-        ArrayList<String> list = new ArrayList<>(deck);
-        if (aa != null) {
-            for (String[] x : aa) {
-                rem1(list, x);
-            }
-        }
-        if (a != null) {
-            for (String[] x : a) {
-                rem1(list, x);
-            }
-        }
-        return list.toArray(new String[list.size()]);
-    }
-    
-    private static void rem1(List<String> list, String[] a) {
-        if (a != null) {
-            for (String s : a) {
-                if (s != null && !list.remove(s)) {
-                    throw new RuntimeException("card " + s + " already removed");
-                }
-            }
-        }
-    }
-    
-    /**
      * Go through every possible 5 card hand and collect the unique hand values in order
      */
     protected static int[] highValues() {
@@ -547,11 +518,10 @@ public abstract class Poker {
     /**
      * Calculate equity for given board and hands.
      */
-    public final MEquity[] equity(Collection<String> board, Collection<String[]> cards, Collection<String> blockers) {
+    public final MEquity[] equity(Collection<String> board, Collection<String[]> cards) {
         String[] boardArr = board != null ? board.toArray(new String[board.size()]) : null;
         String[][] cardsArr = cards.toArray(new String[cards.size()][]);
-        String[] blockersArr = blockers.toArray(new String[blockers.size()]);
-        return equity(boardArr, cardsArr, blockersArr);
+        return equity(boardArr, cardsArr);
     }
     
     /** primary valuation method */
@@ -562,14 +532,14 @@ public abstract class Poker {
     }
     
     /** get the primary value function for this game */
-    public Value getValue () {
+    public Value getValue() {
         return value;
     }
     
     /**
      * Calculate equity for given board and hands (implementation)
      */
-    protected abstract MEquity[] equity(String[] board, String[][] holeCards, String[] blockers);
+    protected abstract MEquity[] equity(String[] board, String[][] holeCards);
     
     /**
      * Calculate value of hand. If the hand is invalid (e.g. has board for non

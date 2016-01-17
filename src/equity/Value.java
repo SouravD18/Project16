@@ -15,10 +15,6 @@ public abstract class Value {
         public final int value(String[] hand) {
             return Poker.value(hand);
         }
-        @Override
-        public String[] draw (String[] cards, int drawn, String[] blockers, List<Draw> drawList) {
-            return DrawPrediction.getDrawingHand(drawList, cards, drawn, true, blockers);
-        }
     };
     
     /**
@@ -49,10 +45,6 @@ public abstract class Value {
         @Override
         public int value(String[] hand) {
             return Poker.dsValue(hand);
-        }
-        @Override
-        public String[] draw (String[] cards, int drawn, String[] blockers, List<Draw> drawList) {
-            return DrawPrediction.getDrawingHand(drawList, cards, drawn, false, blockers);
         }
     };
     

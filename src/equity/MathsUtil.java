@@ -6,7 +6,6 @@ import java.math.BigInteger;
  * Mathematical utility methods
  */
 public class MathsUtil {
-    
     private static final int[][] C = makeBinomialCoefficients(52, 52);
     
     /**
@@ -40,6 +39,8 @@ public class MathsUtil {
             }
         }
         return r;
+        
+        
     }
     
     /**

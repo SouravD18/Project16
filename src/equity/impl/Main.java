@@ -29,15 +29,8 @@ public class Main {
      * @return equity of our hand (a double)
      */
     public double equity(String[] board, String[] myCards, String[] opponentCards){
-        /// Not sure whether we need to assert or not
-        //assert board.length < 6;
-        //assert myCards.length > 1;
-        //assert opponentCards.length > 1;
-
         String[][] holeCards = {myCards, opponentCards};
-        
-        return ( new HEPoker(true, false) )
-                .equity(board.clone(), holeCards.clone(), new String[]{})[0]
+        return new HEPoker().equity(board.clone(), holeCards.clone())[0]
                 .getEquity(Equity.Type.HI_ONLY).total;
     }
     
@@ -51,8 +44,8 @@ public class Main {
         double a = ((new Main()).equity(board, myCards, opponentCards) );
         long endTime = System.nanoTime();
         long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
-        System.out.println(a);
         System.out.println(duration/1000000.0);
+        System.out.println("equity is " + a);
         
     }
 }

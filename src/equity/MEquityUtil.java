@@ -22,10 +22,10 @@ public class MEquityUtil {
      * Make array of multiple hand equities for hi or hi/lo equity type,
      * number of remaining cards, and calculation method
      */
-    public static MEquity[] createMEquitiesHL(boolean hilo, int hands, int rem, boolean exact) {
+    public static MEquity[] createMEquitiesHL(int hands, int rem, boolean exact) {
         MEquity[] meqs = new MEquity[hands];
         for (int n = 0; n < meqs.length; n++) {
-            meqs[n] = MEquity.createMEquityHL(hilo, rem, exact);
+            meqs[n] = MEquity.createMEquityHL(false, rem, exact);
         }
         return meqs;
     }

@@ -8,7 +8,7 @@ import equity.ArrayUtil;
  * generate sample remaining boards
  */
 class HEBoardSample extends HEBoard {
-    private final long[] picked = new long[1];
+    private final long[] picked = {0};
     private final int count;
     private final Random r = new Random();
     
@@ -32,15 +32,13 @@ class HEBoardSample extends HEBoard {
 
     @Override
     void next() {
-        picked[0] = 0;
         for (int n = current.length; n < 5; n++) {
             board[n] = ArrayUtil.pick(r, deck, picked);
         }
     }
     
     @Override
-    boolean exact() {
+    boolean exact(){
         return false;
     }
-    
 }

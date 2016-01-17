@@ -35,12 +35,11 @@ class HEBoardEnum extends HEBoard {
     
     @Override
     void next() {
-        // get board combination
         MathsUtil.kCombination(k, p++, deck, board, current.length);
     }
     
     @Override
-    boolean exact() {
+    boolean exact(){
         return true;
     }
 }
