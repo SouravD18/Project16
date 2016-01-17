@@ -53,5 +53,6 @@ public class Main {
         long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
         System.out.println(a);
         System.out.println(duration/1000000.0);
+        
     }
 }

@@ -126,7 +126,7 @@ public class card implements Comparable<card>{
 
     @Override
     public int compareTo(card arg0) {
-        return this.order;
+        return order - arg0.order;
     }
     
 }
