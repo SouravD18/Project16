@@ -376,8 +376,6 @@ public abstract class Poker {
             case DS_LOW_TYPE:
             case AF_LOW_TYPE:
                 return valueStringHi(MAX_RANK - (value & HAND), false);
-            case BADUGI_TYPE:
-                return Badugi.valueString(value);
             default:
                 throw new RuntimeException("v=" + Integer.toHexString(value));
         }
@@ -447,8 +445,6 @@ public abstract class Poker {
                 return rankLo(value, 5);
             case DS_LOW_TYPE:
                 return rankLo(value, 7);
-            case BADUGI_TYPE:
-                return Badugi.rank(value);
             default:
                 throw new RuntimeException("v=" + Integer.toHexString(value));
         }
@@ -551,11 +547,11 @@ public abstract class Poker {
     /**
      * Calculate equity for given board and hands.
      */
-    public final MEquity[] equity(Collection<String> board, Collection<String[]> cards, Collection<String> blockers, int draws) {
+    public final MEquity[] equity(Collection<String> board, Collection<String[]> cards, Collection<String> blockers) {
         String[] boardArr = board != null ? board.toArray(new String[board.size()]) : null;
         String[][] cardsArr = cards.toArray(new String[cards.size()][]);
         String[] blockersArr = blockers.toArray(new String[blockers.size()]);
-        return equity(boardArr, cardsArr, blockersArr, draws);
+        return equity(boardArr, cardsArr, blockersArr);
     }
     
     /** primary valuation method */
@@ -573,7 +569,7 @@ public abstract class Poker {
     /**
      * Calculate equity for given board and hands (implementation)
      */
-    protected abstract MEquity[] equity(String[] board, String[][] holeCards, String[] blockers, int draws);
+    protected abstract MEquity[] equity(String[] board, String[][] holeCards, String[] blockers);
     
     /**
      * Calculate value of hand. If the hand is invalid (e.g. has board for non

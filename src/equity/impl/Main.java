@@ -37,7 +37,7 @@ public class Main {
         String[][] holeCards = {myCards, opponentCards};
         
         return ( new HEPoker(true, false) )
-                .equity(board.clone(), holeCards.clone(), new String[]{}, 0)[0]
+                .equity(board.clone(), holeCards.clone(), new String[]{})[0]
                 .getEquity(Equity.Type.HI_ONLY).total;
     }
     
@@ -46,6 +46,12 @@ public class Main {
         String[] myCards = {"Td","4c","7h","As"};
         String[] opponentCards = {"Kc","Qh", "3s", "5s"};
         
+        long startTime = System.nanoTime();
+        
         double a = ((new Main()).equity(board, myCards, opponentCards) );
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
+        System.out.println(a);
+        System.out.println(duration/1000000.0);
     }
 }

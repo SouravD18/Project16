@@ -18,8 +18,6 @@ public class EquityUtil {
             case HI_ONLY:
             case HILO_HI_HALF:
                 return Poker.shortRankNames;
-            case BADUGI_ONLY:
-                return Badugi.shortRankNames;
             default:
                 throw new RuntimeException("no such equity type: " + eqtype);
         }

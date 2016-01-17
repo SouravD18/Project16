@@ -66,19 +66,6 @@ public abstract class Value {
         }
     };
     
-    /**
-     * badugi value
-     */
-    public static final Value badugiValue = new Value(Equity.Type.BADUGI_ONLY, 4) {
-        @Override
-        public int value(String[] hand) {
-            return Badugi.badugiValue(hand);
-        }
-        @Override
-        public String[] draw (String[] cards, int drawn, String[] blockers, List<Draw> drawList) {
-            return Badugi.draw(cards, drawn);
-        }
-    };
     
     /**
      * default (non-hi/lo) equity type for this valuation function - see Equity
