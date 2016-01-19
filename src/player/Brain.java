@@ -3,11 +3,16 @@ package player;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
+
+import equity.poker.Main;
 
 public class Brain {
+    // Declaring the necessary fields
     
-    // [myName, oppName]
+    //Equity
+    double equity = 0.5;
+    
+    // My name and Opponent Name
     String[] Names = new String[2];
     int myBankRoll = 0;
     int otherBankRoll = 0;
@@ -33,8 +38,7 @@ public class Brain {
     Action[] actions = new Action[3];
     int numberOfLastActions = 0;
     
-    List<String> legalActions = new ArrayList<String>();
-    int numberOflegalActions = 0;
+
     
     /**
      *  Betting turn trackers
@@ -44,6 +48,7 @@ public class Brain {
     int turnBetTurn = 0;
     int riverBetTurn = 0;
     
+    ProcessActions action = new ProcessActions();
     public Brain(){    
     }
     /**
@@ -107,7 +112,7 @@ public class Brain {
     
     public void getAction(int pot, int numBoardCards, String[] board, int numLastActions,
                     Action[] lastActions,int numLegalActions, String[] legalActions, double time){
-        
+
         this.previousPot = this.currentPot + 0;
         this.currentPot = pot;
         this.turnCounter = numBoardCards;
@@ -129,11 +134,8 @@ public class Brain {
         // Assigning last Action
         this.actions[2] = lastActions[numLastActions - 1];
         
-        // Assigning legal actions
-        this.numberOflegalActions = numLegalActions;
-        this.legalActions.clear();
-        this.legalActions.addAll(Arrays.asList(legalActions));
-        
+        // Processing legalActions
+        this.action.process(legalActions);
         this.timeBank = time;
     }
     
@@ -162,318 +164,57 @@ public class Brain {
     }
     
     /**
-     * Simple Preflop Strategy:
-     *  --> Always Raise Max from button position. And Also Call to 2nd-Bet
-     *  --> Always Call/ Check from non-button position.
+     * Edited: 19th Jan by sourav18
+     *  Check the classes for descriptions
      */
     private String preFlop(){
-        // If the bot is the button:
-        if(this.isButton) {
-            // If this is the first betting turn
-            if(this.preFlopBetTurn == 0){
-                // Raise Max == Raise 6
-                
-                this.preFlopBetTurn += 1;
-                return "RAISE:6";
-            }
-            // If it's the second round of betting, then just call
-            else{
-                this.preFlopBetTurn += 1;
-                return "CALL";
-            }
-        }
-        
-        // If the bot is not button, then just call/ check
-        else{
-            for(String act: this.legalActions){
-                if(act.equals("CHECK") || act.equals("CALL")){
-                    this.preFlopBetTurn++;
-                    return act;
-                }
-            }
-            // Code should not reach here.
-            this.preFlopBetTurn++;
-            return "CHECK";
-        }
+        this.preFlopBetTurn += 1;
+        return action.call();
     }
-    
-    /**
-     * Simple Flop Strategy:
-     *  --> From Button Position (Act 2nd):
-     *      --> A good hand
-     *      --> A medium hand
-     *      --> A bad hand
-     *  --> From Non-Button Position (Act 1st):
-     *      --> A good hand
-     *      --> A medium hand
-     *      --> A bad hand
-     *      
-     * Since we don't have an equity calculator, we'll randomly play our hand(No other option :( )
-     * 
-     * We'll play 90% of the flops from button. 
-     * And 70% of the time we will bet/raise
-     *      --> 70% chance of raise/Bet
-     *      --> 20% chance of call
-     *      --> 10% chance of fold
-     *   There is 10% chance of folding to a 2-bet. But 90% chance to call a 2-bet
-     *   
-     * We'll play 80% of the flops from non-button position
-     *      --> 50% chance of raise/bet
-     *      --> 50% chance of Checking
-     *  And 20% chance of folding to a 2-bet. But 80% chance to call a 2-bet
-     */
-    private String flop(){
-        // If the bot is the button:
-        if(this.isButton) {
-            // If this is the first betting turn
-            if(this.flopBetTurn == 0){
-                double probability = (new Random()).nextDouble();
-                
-                // Probability of betting/ raising
-                if(probability < .7){
-                    // Need to return Bet/ Raise Max
-                    
-                    for(String act: this.legalActions){
-                        String[] words = act.split(":");
-                        if(words[0].equals("BET") || words[0].equals("RAISE")){
-                            this.flopBetTurn ++;
-                            return words[0].concat(":").concat(words[2]);
-                        }
-                    }
-                    // Should not reach here
-                    this.flopBetTurn ++;
-                    return "CHECK";
-                }
-                
-                // Probability of calling
-                else if(probability < .9){
-                    for(String act: this.legalActions){
-                        if(act.equals("CHECK") || act.equals("CALL")){
-                            this.flopBetTurn ++;
-                            return act;
-                        }
-                    }
-                    // Should not reach here
-                    this.flopBetTurn ++;
-                    return "CHECK";
-                }
-                
-                // Probability of folding
-                else{
-                    this.flopBetTurn ++;
-                    return "FOLD";
-                }
-                
-            }
-            // If it's the second round of betting, then Call/Check accordingly
-            else{
-                double againProbability = (new Random()).nextDouble();
-                if(againProbability < .9){
-                    for(String act: this.legalActions){
-                        if(act.equals("CHECK") || act.equals("CALL")){
-                            this.preFlopBetTurn++;
-                            return act;
-                        }
-                    }
-                    // Code should not reach here.
-                    this.preFlopBetTurn++;
-                    return "CHECK";
-                }
-                else{
-                    this.preFlopBetTurn++;
-                    return "FOLD";
-                }
-            }
-        }
-        
-        // Now If I am the non-button:
-        else{
-            // If this is the first betting turn
-            if(this.flopBetTurn == 0){
-                double probability = (new Random()).nextDouble();
-                
-                // Probability of betting/ raising
-                if(probability < .5){
-                    // Need to return Bet/ Raise Max
-                    
-                    for(String act: this.legalActions){
-                        String[] words = act.split(":");
-                        if(words[0].equals("BET") || words[0].equals("RAISE")){
-                            this.flopBetTurn ++;
-                            return words[0].concat(":").concat(words[2]);
-                        }
-                    }
-                    // Should not reach here
-                    this.flopBetTurn ++;
-                    return "CHECK";
-                }
-                
-                // Probability of calling
-                else {
-                    for(String act: this.legalActions){
-                        if(act.equals("CHECK") || act.equals("CALL")){
-                            this.flopBetTurn ++;
-                            return act;
-                        }
-                    }
-                    // Should not reach here
-                    this.flopBetTurn ++;
-                    return "CHECK";
-                }  
-            }
-            
-            // If it's the second round of betting, then Call/Check accordingly
-            else{
-                double againProbability = (new Random()).nextDouble();
-                if(againProbability < .8){
-                    for(String act: this.legalActions){
-                        if(act.equals("CHECK") || act.equals("CALL")){
-                            this.preFlopBetTurn++;
-                            return act;
-                        }
-                    }
-                    // Code should not reach here.
-                    this.preFlopBetTurn++;
-                    return "CHECK";
-                }
-                else{
-                    this.preFlopBetTurn++;
-                    return "FOLD";
-                }
-            }
-        }
-    }    
-    
-    
-    /**
-     * Simple Turn Strategy:
-     *  --> From Button Position (Act 2nd):
-     *      --> A good hand
-     *      --> A medium hand
-     *      --> A bad hand
-     *  --> From Non-Button Position (Act 1st):
-     *      --> A good hand
-     *      --> A medium hand
-     *      --> A bad hand
-     *      
-     * But we don't have equity calculator yet(Also I need to sleep now). So we will randomly choose 
-     * to call/bet/fold. We'll do: 40%, 35%, 25% (Need to fold often at this point)
-     */
-    private String turn(){
-        if(turnBetTurn == 0){
-            double probability = (new Random()).nextDouble();
-            // Call
-            if(probability < .4){
-                for(String act: this.legalActions){
-                    if(act.equals("CHECK") || act.equals("CALL")){
-                        this.turnBetTurn++;
-                        return act;
-                    }
-                }
-                // Should not come here
-                this.turnBetTurn++;
-                return "CHECK";
-            }
-            // Bet
-            else if(probability <.75){
-             // Need to return Bet/ Raise Max
-                
-                for(String act: this.legalActions){
-                    String[] words = act.split(":");
-                    if(words[0].equals("BET") || words[0].equals("RAISE")){
-                        this.flopBetTurn ++;
-                        return words[0].concat(":").concat(words[2]);
-                    }
-                }
-                // Should not reach here
-                this.flopBetTurn ++;
-                return "CHECK";
 
-            }
-            // Check FOLD
-            else{
-                for(String act: this.legalActions){
-                    if(act.equals("CHECK")){
-                        this.turnBetTurn++;
-                        return act;
-                    }
-                }
-                this.turnBetTurn++;
-                return "FOLD";
-            }
+     
+    private String flop(){
+        this.flopBetTurn += 1;
+        if(this.flopBetTurn == 1){
+            String[] board = new String[3];
+            board[0] = this.boardCards.get(0);
+            board[1] = this.boardCards.get(1);
+            board[2] = this.boardCards.get(2);
+            
+            equity = (new Main()).getEquity(board, 
+                    this.holeCards);
         }
-        
-        // If it's the second turn: Some mix of probabilities
-        else{
-            double probability = (new Random()).nextDouble();
-            // Call
-            if(probability < .75){
-                for(String act: this.legalActions){
-                    if(act.equals("CHECK") || act.equals("CALL")){
-                        this.turnBetTurn++;
-                        return act;
-                    }
-                }
-                // Should not come here
-                this.turnBetTurn++;
-                return "CHECK";
-            }
-           
-            // Check/FOLD
-            else{
-                for(String act: this.legalActions){
-                    if(act.equals("CHECK")){
-                        this.turnBetTurn++;
-                        return act;
-                    }
-                }
-                this.turnBetTurn++;
-                return "FOLD";
-            }
+        return (new Flop()).takeAction(this.action, this.equity, this.currentPot);
+    }    
+  
+    private String turn(){
+        this.turnBetTurn += 1;
+        if(this.turnBetTurn == 1){
+            String[] board = new String[4];
+            board[0] = this.boardCards.get(0);
+            board[1] = this.boardCards.get(1);
+            board[2] = this.boardCards.get(2);
+            board[3] = this.boardCards.get(3);
+            
+            equity = (new Main()).getEquity(board, 
+                    this.holeCards);
         }
+        return (new Turn()).takeAction(this.action, this.equity, this.currentPot);
     }
-    
-    
-    /**
-     * Simple River Strategy:
-     *  --> From Button Position (Act 2nd):
-     *      --> A good hand
-     *      --> A medium hand
-     *      --> A bad hand
-     *  --> From Non-Button Position (Act 1st):
-     *      --> A good hand
-     *      --> A medium hand
-     *      --> A bad hand
-     *
-     */
-    
-    // Again, some bull shit probabilities:
+
     private String river(){
-        double probability = (new Random()).nextDouble();
-        // Call
-        if(probability < .75){
-            for(String act: this.legalActions){
-                if(act.equals("CHECK") || act.equals("CALL")){
-                    this.riverBetTurn++;
-                    return act;
-                }
-            }
-            // Should not come here
-            this.riverBetTurn++;
-            return "CHECK";
+        this.riverBetTurn += 1;
+        if(this.riverBetTurn == 1){
+            String[] board = new String[5];
+            board[0] = this.boardCards.get(0);
+            board[1] = this.boardCards.get(1);
+            board[2] = this.boardCards.get(2);
+            board[3] = this.boardCards.get(3);
+            board[4] = this.boardCards.get(4);
+            
+            equity = (new Main()).getEquity(board, 
+                    this.holeCards);
         }
-       
-        // Check/FOLD
-        else{
-            for(String act: this.legalActions){
-                if(act.equals("CHECK")){
-                    this.riverBetTurn++;
-                    return act;
-                }
-            }
-            this.riverBetTurn++;
-            return "FOLD";
-        }
-    }
-    
+        return (new River()).takeAction(this.action, this.equity, this.currentPot);
+    }    
 }

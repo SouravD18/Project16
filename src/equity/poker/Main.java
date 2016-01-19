@@ -3,7 +3,11 @@ package equity.poker;
 public class Main{
 
     public static int threads = Runtime.getRuntime().availableProcessors();
-
+    
+    public double getEquity(String[] board, String[] myCards){
+        return 0.5;
+    }
+    
     public static void main(String[] args) {
         long startTime = System.nanoTime();
         String[] board = {"6d", "9c", "4c"}; 
