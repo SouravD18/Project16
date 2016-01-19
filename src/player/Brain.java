@@ -175,16 +175,46 @@ public class Brain {
      
     private String flop(){
         this.flopBetTurn += 1;
-        return action.call();
+        if(this.flopBetTurn == 1){
+            String[] board = new String[3];
+            board[0] = this.boardCards.get(0);
+            board[1] = this.boardCards.get(1);
+            board[2] = this.boardCards.get(2);
+            
+            equity = (new Main()).getEquity(board, 
+                    this.holeCards);
+        }
+        return (new Flop()).takeAction(this.action, this.equity, this.currentPot);
     }    
   
     private String turn(){
         this.turnBetTurn += 1;
-        return action.call();
+        if(this.turnBetTurn == 1){
+            String[] board = new String[4];
+            board[0] = this.boardCards.get(0);
+            board[1] = this.boardCards.get(1);
+            board[2] = this.boardCards.get(2);
+            board[3] = this.boardCards.get(3);
+            
+            equity = (new Main()).getEquity(board, 
+                    this.holeCards);
+        }
+        return (new Turn()).takeAction(this.action, this.equity, this.currentPot);
     }
 
     private String river(){
         this.riverBetTurn += 1;
-        return action.call();
+        if(this.riverBetTurn == 1){
+            String[] board = new String[5];
+            board[0] = this.boardCards.get(0);
+            board[1] = this.boardCards.get(1);
+            board[2] = this.boardCards.get(2);
+            board[3] = this.boardCards.get(3);
+            board[4] = this.boardCards.get(4);
+            
+            equity = (new Main()).getEquity(board, 
+                    this.holeCards);
+        }
+        return (new River()).takeAction(this.action, this.equity, this.currentPot);
     }    
 }

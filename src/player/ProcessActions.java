@@ -89,10 +89,10 @@ public class ProcessActions {
     public String bet(int amount){
         String betOrRaise;
         if(this.betPossible){
-            betOrRaise = "BET";
+            betOrRaise = "BET:";
         }
         else{
-            betOrRaise = "RAISE";
+            betOrRaise = "RAISE:";
         }
         
         if(amount < this.lowerRange){
