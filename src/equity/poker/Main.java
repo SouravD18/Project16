@@ -1,13 +1,13 @@
-package equity.showdown;
+package equity.poker;
 
 public class Main{
 
-    public static int threads = 8; //Runtime.getRuntime().availableProcessors();
+    public static int threads = Runtime.getRuntime().availableProcessors();
 
     public static void main(String[] args) {
         long startTime = System.nanoTime();
         
-        String[] board = {}; //"6d", "6c", "5h", "5d"
+        String[] board = {"6d", "6c", "5h", "5d"}; //
         String[] myCards = {"Td","4c","7h","As"}; //"Td","4c","7h","As"
         String[] opponentCards = {};//"Kc","Qh", "3s", "5s"}; //"Kc","Qh", "3s", "5s"
         String[][] holeCards = {myCards, opponentCards};

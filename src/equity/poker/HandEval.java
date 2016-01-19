@@ -68,30 +68,6 @@ package equity.poker;
 public final class HandEval {
 
     private HandEval() {}	// no instances
-    
-    /**
-     * Returns a value which can be used in building a parameter to one of the HandEval evaluation methods.
-     * @param card a {@link Card}
-     * @return a value which may be bitwise OR'ed or added to other such
-     * values to build a parameter to one of the HandEval evaluation methods.
-     */
-    public static long encode(final Card card) {
-        return 0x1L << (card.suitOf().ordinal()*16 + card.rankOf().ordinal());
-    }
-
-    /**
-     * Returns a value which can be used as a parameter to one of the HandEval evaluation methods.
-     * @param cs a {@link CardSet}
-     * @return a value which can be used as a parameter to one of the HandEval evaluation methods.
-     * The value may also be bitwise OR'ed or added to other such
-     * values to build an evaluation method parameter.
-     */
-    public static long encode(final CardSet cs) {
-        long result = 0;
-        for (Card c : cs)
-            result |= encode(c);
-        return result;
-    }
 
     public static enum HandCategory { NO_PAIR, PAIR, TWO_PAIR, THREE_OF_A_KIND, STRAIGHT,
         FLUSH, FULL_HOUSE, FOUR_OF_A_KIND, STRAIGHT_FLUSH; }

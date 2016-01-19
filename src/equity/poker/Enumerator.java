@@ -1,5 +1,8 @@
-package equity.showdown;
+package equity.poker;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import equity.poker.*;
@@ -15,40 +18,119 @@ final class Enumerator extends Thread {
     private final int	nBoardCards;
     private long[]		deck;
     private boolean[]	dealt;
-    //    private long[]		holeHand;
     private int[]		handValue;
     private final int	limitIx1, limitIx2, limitIx3, limitIx4, limitIx5;
     private long[]       boardCardsBits = new long[5];
     private long[][]     handCardsBits = new long[2][4];
-    //  private long		board1, board2, board3, board4, board5;
+    
+    public static final Map<String, Long> cardMap = new HashMap<>();
+    private static final String[] deckArr = { 
+            "2h", "2s", "2c", "2d",
+            "3h", "3s", "3c", "3d", "4h", "4s", "4c", "4d", "5h", "5s", "5c",
+            "5d", "6h", "6s", "6c", "6d", "7h", "7s", "7c", "7d", "8h", "8s",
+            "8c", "8d", "9h", "9s", "9c", "9d", "Th", "Ts", "Tc", "Td", "Jh",
+            "Js", "Jc", "Jd", "Qh", "Qs", "Qc", "Qd", "Kh", "Ks", "Kc", "Kd",
+            "Ah", "As", "Ac", "Ad" 
+        };
+    public static final Set<String> deckSet = new HashSet<String>(Arrays.asList(deckArr));
+    
+    static {
+        cardMap.put("2c", 0x1L << 0);
+        cardMap.put("2d", 0x1L << 16);
+        cardMap.put("2h", 0x1L << 32);
+        cardMap.put("2s", 0x1L << 48);
+
+        cardMap.put("3c", 0x1L << 1);
+        cardMap.put("3d", 0x1L << 17);
+        cardMap.put("3h", 0x1L << 33);
+        cardMap.put("3s", 0x1L << 49);
+
+        cardMap.put("4c", 0x1L << 2);
+        cardMap.put("4d", 0x1L << 18);
+        cardMap.put("4h", 0x1L << 34);
+        cardMap.put("4s", 0x1L << 50);
+
+        cardMap.put("5c", 0x1L << 3);
+        cardMap.put("5d", 0x1L << 19);
+        cardMap.put("5h", 0x1L << 35);
+        cardMap.put("5s", 0x1L << 51);
+
+        cardMap.put("6c", 0x1L << 4);
+        cardMap.put("6d", 0x1L << 20);
+        cardMap.put("6h", 0x1L << 36);
+        cardMap.put("6s", 0x1L << 52);
+
+        cardMap.put("7c", 0x1L << 5);
+        cardMap.put("7d", 0x1L << 21);
+        cardMap.put("7h", 0x1L << 37);
+        cardMap.put("7s", 0x1L << 53);
+
+        cardMap.put("8c", 0x1L << 6);
+        cardMap.put("8d", 0x1L << 22);
+        cardMap.put("8h", 0x1L << 38);
+        cardMap.put("8s", 0x1L << 54);
+
+        cardMap.put("9c", 0x1L << 7);
+        cardMap.put("9d", 0x1L << 23);
+        cardMap.put("9h", 0x1L << 39);
+        cardMap.put("9s", 0x1L << 55);
+
+        cardMap.put("Tc", 0x1L << 8);
+        cardMap.put("Td", 0x1L << 24);
+        cardMap.put("Th", 0x1L << 40);
+        cardMap.put("Ts", 0x1L << 56);
+
+        cardMap.put("Jc", 0x1L << 9);
+        cardMap.put("Jd", 0x1L << 25);
+        cardMap.put("Jh", 0x1L << 41);
+        cardMap.put("Js", 0x1L << 57);
+
+        cardMap.put("Qc", 0x1L << 10);
+        cardMap.put("Qd", 0x1L << 26);
+        cardMap.put("Qh", 0x1L << 42);
+        cardMap.put("Qs", 0x1L << 58);
+
+        cardMap.put("Kc", 0x1L << 11);
+        cardMap.put("Kd", 0x1L << 27);
+        cardMap.put("Kh", 0x1L << 43);
+        cardMap.put("Ks", 0x1L << 59);
+
+        cardMap.put("Ac", 0x1L << 12);
+        cardMap.put("Ad", 0x1L << 28);
+        cardMap.put("Ah", 0x1L << 44);
+        cardMap.put("As", 0x1L << 60);
+    }
     
     @Override public final void run() {
-        if (nUnknown > 0)
+        if (nUnknown == 1)
             enumBoards();
-        else
+        else if (nUnknown == 0)
             enumBoardsNoUnknown();
+        else
+            throw new RuntimeException("Invalid number of unknown players");
+            
     }
 
     Enumerator(final int instance, final int instances, final String[][] holeCards, final String[] board) {
         super("Enumerator" + instance);
         startIx = instance;
         increment = instances;
-
+        
         for (int j = 0; j < holeCards.length; j++){
             for (int k = 0; k < holeCards[j].length; k++){
-                handCardsBits[j][k] = HandEval.encode(new Card(holeCards[j][k]));
+                handCardsBits[j][k] = cardMap.get(holeCards[j][k]);
             }
         }
         for (int j = 0; j < board.length; j++){
-            boardCardsBits[j] = HandEval.encode(new Card(board[j]));
+            boardCardsBits[j] = cardMap.get(board[j]);
         }
-
+        
         int nCardsInDeck = 52 - (board.length + holeCards[0].length + holeCards[1].length);
         this.deck = new long[nCardsInDeck];
         dealt = new boolean[nCardsInDeck];
         int i = 0;
 
-        Set<String> tempDeck = new HashSet<>(CardSet.deckSet);
+        Set<String> tempDeck = new HashSet<>(deckSet);
         for (String[] array: holeCards)
             for (String s: array)
                 tempDeck.remove(s);
@@ -56,7 +138,7 @@ final class Enumerator extends Thread {
             tempDeck.remove(s);
 
         for (String s: tempDeck){
-            this.deck[i++] = HandEval.encode(new Card(s));
+            this.deck[i++] = cardMap.get(s);
         }
 
         nPlayers = 2;
