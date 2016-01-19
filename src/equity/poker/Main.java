@@ -6,10 +6,24 @@ public class Main{
 
     public static void main(String[] args) {
         long startTime = System.nanoTime();
+        String[] board = {"6d", "9c", "4c"}; 
+        String[] myCards = {"As", "4d", "2d", "Jc"};
         
-        String[] board = {"6d", "6c", "5h", "5d", "Ad"}; 
-        String[] myCards = {"Td", "4c", "7h", "As"};
-        
+        double equity = getEquity(board, myCards);
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
+        System.out.println("Equity is " + equity);
+        System.out.println("Duration is " + (duration/1000000.0));
+
+    }
+    
+    /**
+     * Gets the equity of your own set of cards
+     * @param board Known board cards (Must have either 0, 3, 4, or 5 cards)
+     * @param myCards Your own set of cards (Must have 4 cards)
+     * @return Equity
+     */
+    public static double getEquity(String[] board, String[] myCards){
         Enumerator[] enumerators = new Enumerator[threads];
         for (int i = 0; i < enumerators.length; i++) {
             enumerators[i] = new Enumerator(i, threads, myCards, board);
@@ -29,14 +43,8 @@ public class Main{
             splits += e.splits[0];
             losses += e.losses[0];
         }
-
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
-        System.out.println(duration/1000000.0);
-        System.out.println("number of wins is " + wins);
-        System.out.println("number of partial pots is " + splits/2.0);
-        System.out.println("number of hands total is " + (wins + splits + losses));
-        System.out.println("Equity is " + (wins + splits/2.0) / (wins + splits + losses));
+        System.out.println("Number of trials is " + (wins + splits + losses));
+        return (wins + splits/2.0) / (wins + splits + losses);
     }
 }
 
