@@ -9,20 +9,21 @@ import equity.poker.*;
 
 final class Enumerator extends Thread {
 
-    private final int	nPlayers;
-    private final int	nUnknown;
     private final int	startIx;	// where to start outer loop through deck
-    private final int	increment;	// of outer loop through deck -- number of threads
-    private long[]		wins, splits;
-    private double[]	partialPots;
     private final int	nBoardCards;
     private long[]		deck;
     private boolean[]	dealt;
-    private int[]		handValue;
     private final int	limitIx1, limitIx2, limitIx3, limitIx4, limitIx5;
-    private long[]       boardCardsBits = new long[5];
-    private long[][]     handCardsBits = new long[2][4];
-    
+    private long[]      board = new long[5];
+    private long[]      myCards = new long[4];
+    private long[]      opponentCards = new long[4];
+    private int         myHandValue;
+    private int         opponentHandValue;
+    private final int   increment;  // of outer loop through deck -- number of threads
+    public long[]       wins = {0L};
+    public long[]      splits = {0L};
+    public long[]      losses = {0L};
+
     public static final Map<String, Long> cardMap = new HashMap<>();
     private static final String[] deckArr = { 
             "2h", "2s", "2c", "2d",
@@ -31,9 +32,8 @@ final class Enumerator extends Thread {
             "8c", "8d", "9h", "9s", "9c", "9d", "Th", "Ts", "Tc", "Td", "Jh",
             "Js", "Jc", "Jd", "Qh", "Qs", "Qc", "Qd", "Kh", "Ks", "Kc", "Kd",
             "Ah", "As", "Ac", "Ad" 
-        };
+    };
     public static final Set<String> deckSet = new HashSet<String>(Arrays.asList(deckArr));
-    
     static {
         cardMap.put("2c", 0x1L << 0);
         cardMap.put("2d", 0x1L << 16);
@@ -100,40 +100,32 @@ final class Enumerator extends Thread {
         cardMap.put("Ah", 0x1L << 44);
         cardMap.put("As", 0x1L << 60);
     }
-    
+
     @Override public final void run() {
-        if (nUnknown == 1)
-            enumBoards();
-        else if (nUnknown == 0)
-            enumBoardsNoUnknown();
-        else
-            throw new RuntimeException("Invalid number of unknown players");
-            
+        enumBoards();
+        //enumAllDecksWithKnownHands() //call this if all hands are known but the board is not
     }
 
-    Enumerator(final int instance, final int instances, final String[][] holeCards, final String[] board) {
+    Enumerator(final int instance, final int instances, final String[] myCards, final String[] board) {
         super("Enumerator" + instance);
         startIx = instance;
         increment = instances;
-        
-        for (int j = 0; j < holeCards.length; j++){
-            for (int k = 0; k < holeCards[j].length; k++){
-                handCardsBits[j][k] = cardMap.get(holeCards[j][k]);
-            }
+
+        for (int j = 0; j < myCards.length; j++){
+            this.myCards[j] = cardMap.get(myCards[j]);
         }
         for (int j = 0; j < board.length; j++){
-            boardCardsBits[j] = cardMap.get(board[j]);
+            this.board[j] = cardMap.get(board[j]);
         }
-        
-        int nCardsInDeck = 52 - (board.length + holeCards[0].length + holeCards[1].length);
+
+        int nCardsInDeck = 52 - (board.length + myCards.length);
         this.deck = new long[nCardsInDeck];
         dealt = new boolean[nCardsInDeck];
-        int i = 0;
 
+        int i = 0;
         Set<String> tempDeck = new HashSet<>(deckSet);
-        for (String[] array: holeCards)
-            for (String s: array)
-                tempDeck.remove(s);
+        for (String s: myCards)
+            tempDeck.remove(s);
         for (String s: board)
             tempDeck.remove(s);
 
@@ -141,13 +133,7 @@ final class Enumerator extends Thread {
             this.deck[i++] = cardMap.get(s);
         }
 
-        nPlayers = 2;
-        this.nUnknown = holeCards[1].length == 0 ? 1 : 0;
         nBoardCards = board.length;
-        wins = new long[nPlayers];
-        splits = new long[nPlayers];
-        partialPots = new double[nPlayers];
-        handValue = new int[nPlayers];
         limitIx1 = nCardsInDeck - 5;
         limitIx2 = nCardsInDeck - 4;
         limitIx3 = nCardsInDeck - 3;
@@ -155,157 +141,43 @@ final class Enumerator extends Thread {
         limitIx5 = nCardsInDeck - 1;
     }
 
-    long[] getWins() {
-        return wins;
-    }
-
-    long[] getSplits() {
-        return splits;
-    }
-
-    double[] getPartialPots() {
-        return partialPots;
-    }
-
-    private void enum2GuysNoFlop() { // special case for speed of EnumBoardsNoUnknown
+    /**
+     * Called whenever both you and your opponent's hands are known
+     * And you're iterating through all the possible boards
+     */
+    private void enumAllDecksWithKnownHands() {
         int handValue0, handValue1;
-        int wins0 = 0, splits0 = 0, pots = 0;
-
         for (int deckIx1 = startIx; deckIx1 <= limitIx1; deckIx1 += increment) {
-            boardCardsBits[0] = deck[deckIx1];
+            board[0] = deck[deckIx1];
             for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx2; ++deckIx2) {
-                boardCardsBits[1] = deck[deckIx2];
+                board[1] = deck[deckIx2];
                 for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
-                    boardCardsBits[2] = deck[deckIx3];
+                    board[2] = deck[deckIx3];
                     for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                        boardCardsBits[3] = deck[deckIx4];
+                        board[3] = deck[deckIx4];
                         for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
-                            boardCardsBits[4] = deck[deckIx5];
-                            handValue0 = HandEval.OmahaHighEval(boardCardsBits, handCardsBits[0]);
-                            handValue1 = HandEval.OmahaHighEval(boardCardsBits, handCardsBits[1]);
-                            /*
-                             * wins[1], splits[1], and partialPots can be inferred
-                             */
-                            ++pots;
+                            board[4] = deck[deckIx5];
+                            handValue0 = HandEval.OmahaHighEval(board, myCards);
+                            handValue1 = HandEval.OmahaHighEval(board, opponentCards);
                             if (handValue0 > handValue1)
-                                ++wins0;
+                                wins[0]++;
                             else if (handValue0 == handValue1)
-                                ++splits0;
+                                splits[0]++;
+                            else losses[0]++;
                         }
                     }
                 }
             }
         }
-        wins[0] = wins0;
-        wins[1] = pots - wins0 - splits0;
-        splits[0] = splits[1] = splits0;
-        partialPots[0] = partialPots[1] = splits0 / 2.0;
     }
 
     private void potResults() {
-        int eval, bestEval = 0;
-        int winningPlayer = 0, waysSplit = 0;
-        double partialPot;
-
-        for (int i = 0; i < nPlayers; ++i) {
-            handValue[i] = eval = HandEval.OmahaHighEval(boardCardsBits, handCardsBits[i]);
-            if (eval > bestEval) {
-                bestEval = eval;
-                waysSplit = 0;
-                winningPlayer = i;
-            } else if (eval == bestEval)
-                ++waysSplit;
-        }
-        if (waysSplit == 0)
-            ++wins[winningPlayer];
-        else {
-            partialPot = 1.0 / ++waysSplit;
-            for (int i = 0; waysSplit > 0; ++i)
-                if (handValue[i] == bestEval) {
-                    partialPots[i] += partialPot;
-                    ++splits[i];
-                    --waysSplit;
-                }
-        }
-    }
-
-    private void enumBoardsNoUnknown() {
-        /*
-         * This is the same as EnumBoards except each case calls
-         * potResults directly.  This one is called when there are
-         * no players with unspecified hole cards (nUnknown == 0).
-         */
-        switch (nBoardCards) {
-        case 0:
-            if (nPlayers == 2) {
-                enum2GuysNoFlop(); /* special case */
-                break;
-            }
-            for (int deckIx1 = startIx; deckIx1 <= limitIx1; deckIx1 += increment) {
-                boardCardsBits[0] = deck[deckIx1];
-                for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx2; ++deckIx2) {
-                    boardCardsBits[1] = deck[deckIx2];
-                    for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
-                        boardCardsBits[2] = deck[deckIx3];
-                        for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                            boardCardsBits[3] = deck[deckIx4];
-                            for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
-                                boardCardsBits[4] = deck[deckIx5];
-                                potResults();
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        case 1:
-            for (int deckIx2 = startIx; deckIx2 <= limitIx2; deckIx2 += increment) {
-                boardCardsBits[1] = deck[deckIx2];
-                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
-                    boardCardsBits[2] = deck[deckIx3];
-                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                        boardCardsBits[3] = deck[deckIx4];
-                        for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
-                            boardCardsBits[4] = deck[deckIx5];
-                            potResults();
-                        }
-                    }
-                }
-            }
-            break;
-        case 2:
-            for (int deckIx3 = startIx; deckIx3 <= limitIx3; deckIx3 += increment) {
-                boardCardsBits[2] = deck[deckIx3];
-                for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                    boardCardsBits[3] = deck[deckIx4];
-                    for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
-                        boardCardsBits[4] = deck[deckIx5];
-                        potResults();
-                    }
-                }
-            }
-            break;
-        case 3:
-            for (int deckIx4 = startIx; deckIx4 <= limitIx4; deckIx4 += increment) {
-                boardCardsBits[3] = deck[deckIx4];
-                for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
-                    boardCardsBits[4] = deck[deckIx5];
-                    potResults();
-                }
-            }
-            break;
-        case 4:
-            // enum 1 board card:
-            for (int deckIx5 = startIx; deckIx5 <= limitIx5; deckIx5 += increment) {
-                boardCardsBits[4] = deck[deckIx5];
-                potResults();
-            }
-            break;
-        case 5:
-            if (startIx == 0)
-                potResults();
-            break;
-        }
+        opponentHandValue = HandEval.OmahaHighEval(board, opponentCards);
+        if (myHandValue > opponentHandValue)
+            wins[0]++;
+        else if (myHandValue == opponentHandValue)
+            splits[0]++;
+        else losses[0]++;
     }
 
     /**
@@ -316,19 +188,19 @@ final class Enumerator extends Thread {
         case 0: //all board cards are unknown, enumerating through all of them
             for (int deckIx1 = startIx; deckIx1 <= limitIx1; deckIx1 += increment) {
                 dealt[deckIx1] = true;
-                boardCardsBits[0] = deck[deckIx1];
+                board[0] = deck[deckIx1];
                 for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx2; ++deckIx2) {
                     dealt[deckIx2] = true;
-                    boardCardsBits[1] = deck[deckIx2];
+                    board[1] = deck[deckIx2];
                     for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
                         dealt[deckIx3] = true;
-                        boardCardsBits[2] = deck[deckIx3];
+                        board[2] = deck[deckIx3];
                         for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
                             dealt[deckIx4] = true;
-                            boardCardsBits[3] = deck[deckIx4];
+                            board[3] = deck[deckIx4];
                             for (int deckIx51 = deckIx4 + 1; deckIx51 <= limitIx5; ++deckIx51) {
                                 dealt[deckIx51] = true;
-                                boardCardsBits[4] = deck[deckIx51];
+                                board[4] = deck[deckIx51];
                                 enumUnknowns();
                                 dealt[deckIx51] = false;
                             }
@@ -341,102 +213,61 @@ final class Enumerator extends Thread {
                 dealt[deckIx1] = false;
             }
             break;
-        case 1:
-            for (int deckIx2 = startIx; deckIx2 <= limitIx2; deckIx2 += increment) {
-                dealt[deckIx2] = true;
-                boardCardsBits[1] = deck[deckIx2];
-                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
-                    dealt[deckIx3] = true;
-                    boardCardsBits[2] = deck[deckIx3];
-                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                        dealt[deckIx4] = true;
-                        boardCardsBits[3] = deck[deckIx4];
-                        for (int deckIx51 = deckIx4 + 1; deckIx51 <= limitIx5; ++deckIx51) {
-                            dealt[deckIx51] = true;
-                            boardCardsBits[4] = deck[deckIx51];
-                            enumUnknowns();
-                            dealt[deckIx51] = false;
-                        }
-                        dealt[deckIx4] = false;
-                    }
-                    dealt[deckIx3] = false;
-                }
-                dealt[deckIx2] = false;
-            }
-            break;
-        case 2:
-            for (int deckIx3 = startIx; deckIx3 <= limitIx3; deckIx3 += increment) {
-                dealt[deckIx3] = true;
-                boardCardsBits[2] = deck[deckIx3];
-                for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                    dealt[deckIx4] = true;
-                    boardCardsBits[3] = deck[deckIx4];
-                    for (int deckIx51 = deckIx4 + 1; deckIx51 <= limitIx5; ++deckIx51) {
-                        dealt[deckIx51] = true;
-                        boardCardsBits[4] = deck[deckIx51];
-                        enumUnknowns();
-                        dealt[deckIx51] = false;
-                    }
-                    dealt[deckIx4] = false;
-                }
-                dealt[deckIx3] = false;
-            }
-            break;
-        case 3:
+        case 3: //3 board cards known
             for (int deckIx4 = startIx; deckIx4 <= limitIx4; deckIx4 += increment) {
                 dealt[deckIx4] = true;
-                boardCardsBits[3] = deck[deckIx4];
+                board[3] = deck[deckIx4];
                 for (int deckIx51 = deckIx4 + 1; deckIx51 <= limitIx5; ++deckIx51) {
                     dealt[deckIx51] = true;
-                    boardCardsBits[4] = deck[deckIx51];
+                    board[4] = deck[deckIx51];
                     enumUnknowns();
                     dealt[deckIx51] = false;
                 }
                 dealt[deckIx4] = false;
             }
             break;
-        case 4: //all but one board card is unknown
+        case 4: //4 board cards known
             for (int deckIx5 = startIx; deckIx5 <= limitIx5; deckIx5 += increment) {
                 dealt[deckIx5] = true;
-                boardCardsBits[4] = deck[deckIx5];
+                board[4] = deck[deckIx5];
                 enumUnknowns();
                 dealt[deckIx5] = false;
             }
-            
-        case 5:
-            if (startIx == 0)
+            break;
+        case 5: //all 5 board cards known
+            if (startIx == 0) //only the first thread will run through the cases (cause fast enough)
                 enumUnknowns();
+            break;
+        default:
+            throw new RuntimeException("We must know either 0, 3, 4, or 5 board cards");
         }
-        
-
     }
 
+    /**
+     * Called when all board cards are determined, now iterating through all possible opponent hands
+     */
     private void enumUnknowns() {
-        if (nUnknown == 1){
-            for (int deckIx1 = 0; deckIx1 <= limitIx2; ++deckIx1) {
-                if (dealt[deckIx1])
+        myHandValue = HandEval.OmahaHighEval(board, myCards);
+        for (int deckIx1 = 0; deckIx1 <= limitIx2; ++deckIx1) {
+            if (dealt[deckIx1])
+                continue;
+            opponentCards[0] = deck[deckIx1];
+            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx3; ++deckIx2) {
+                if (dealt[deckIx2])
                     continue;
-                handCardsBits[1][0] = deck[deckIx1];
-                for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx3; ++deckIx2) {
-                    if (dealt[deckIx2])
+                opponentCards[1] = deck[deckIx2];
+                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx4; ++deckIx3) {
+                    if (dealt[deckIx3])
                         continue;
-                    handCardsBits[1][1] = deck[deckIx2];
-                    for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx4; ++deckIx3) {
-                        if (dealt[deckIx3])
+                    opponentCards[2] = deck[deckIx3];
+                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx5; ++deckIx4) {
+                        if (dealt[deckIx4])
                             continue;
-                        handCardsBits[1][2] = deck[deckIx3];
-                        for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx5; ++deckIx4) {
-                            if (dealt[deckIx4])
-                                continue;
-                            handCardsBits[1][3] = deck[deckIx4];
-                            potResults();
-                        }
+                        opponentCards[3] = deck[deckIx4];
+                        potResults();
                     }
                 }
             }
-        }
-        else {
-            throw new RuntimeException("More than one unknown, pls");
         }
     }
 }
