@@ -21,8 +21,8 @@ final class Enumerator extends Thread {
     private int         opponentHandValue;
     private final int   increment;  // of outer loop through deck -- number of threads
     public long[]       wins = {0L};
-    public long[]      splits = {0L};
-    public long[]      losses = {0L};
+    public long[]       splits = {0L};
+    public long[]       losses = {0L};
 
     public static final Map<String, Long> cardMap = new HashMap<>();
     private static final String[] deckArr = { 
@@ -235,8 +235,7 @@ final class Enumerator extends Thread {
             }
             break;
         case 5: //all 5 board cards known
-            if (startIx == 0) //only the first thread will run through the cases (cause fast enough)
-                enumUnknowns();
+            enumUnknownsMultiThreaded();
             break;
         default:
             throw new RuntimeException("We must know either 0, 3, 4, or 5 board cards");
@@ -249,6 +248,34 @@ final class Enumerator extends Thread {
     private void enumUnknowns() {
         myHandValue = HandEval.OmahaHighEval(board, myCards);
         for (int deckIx1 = 0; deckIx1 <= limitIx2; ++deckIx1) {
+            if (dealt[deckIx1])
+                continue;
+            opponentCards[0] = deck[deckIx1];
+            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx3; ++deckIx2) {
+                if (dealt[deckIx2])
+                    continue;
+                opponentCards[1] = deck[deckIx2];
+                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx4; ++deckIx3) {
+                    if (dealt[deckIx3])
+                        continue;
+                    opponentCards[2] = deck[deckIx3];
+                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx5; ++deckIx4) {
+                        if (dealt[deckIx4])
+                            continue;
+                        opponentCards[3] = deck[deckIx4];
+                        potResults();
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Call this only when all 5 board cards are known
+     */
+    private void enumUnknownsMultiThreaded() {
+        myHandValue = HandEval.OmahaHighEval(board, myCards);
+        for (int deckIx1 = startIx; deckIx1 <= limitIx2; deckIx1 += increment) {
             if (dealt[deckIx1])
                 continue;
             opponentCards[0] = deck[deckIx1];
