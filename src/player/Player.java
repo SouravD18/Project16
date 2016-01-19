@@ -15,102 +15,66 @@ import java.io.PrintWriter;
  * 
  */
 public class Player {
-	
-	private final PrintWriter outStream;
-	private final BufferedReader inStream;
-	
-	// Fields Created for our bot:
-	
-	private String[] myHoleCards;
-	private String[] boardCards;
-	
-	// Boolean to indicate whether our bot is a button or not
-	private boolean isButton;
-	
-	// Number of hands remaining
-	private int numberOfHands;
-	
-	private int myBank; 
-	private int otherBank;
-	
-	// Amount of time remaining
-	private double timeBank;
-	
-	// current number of the hand
-	private int handId;
-	
-	// List of names. First name is our bot's name. Second is for opponent
-	private String[] names;
-	
-	// Brain
-	private Brain myBrain;
-	
-	public Player(PrintWriter output, BufferedReader input) {
-		this.outStream = output;
-		this.inStream = input;
-		
-		this.myHoleCards = new String[4];
-		this.isButton = false;
-		this.numberOfHands = 0;
-		this.myBank = 0;
-		this.otherBank = 0;
-		this.timeBank = .1;
-		this.handId = 0;
-		this.boardCards = new String[5];
-		this.names = new String[2];
-		this.myBrain = new Brain();
-	}
-	
-	public void run() {
-		String input;
-		try {
-			// Block until engine sends us a packet; read it into input.
-			while ((input = inStream.readLine()) != null) {
-			    // Changes made by: sourav18
-			    // We call this function to perform parsing
-			    parsePacket(input);
-			    
-				// Here is where you should implement code to parse the packets
-				// from the engine and act on it.
-				
-			    System.out.println(input);
-				
-				String word = input.split(" ")[0];
-				if ("GETACTION".compareToIgnoreCase(word) == 0) {
-					// When appropriate, reply to the engine with a legal
-					// action.
-					// The engine will ignore all spurious packets you send.
-					// The engine will also check/fold for you if you return an
-					// illegal action.
-				    
-				    // FOLDERBOT works
-				    // Checking Folderbot:
-				    
-				    String action = this.myBrain.decision();
-					outStream.println(action);
-				    
-				} else if ("REQUESTKEYVALUES".compareToIgnoreCase(word) == 0) {
-					// At the end, engine will allow bot to send key/value pairs to store.
-					// FINISH indicates no more to store.
-					outStream.println("FINISH");
-				}
-			}
-		} catch (IOException e) {
-			System.out.println("IOException: " + e.getMessage());
-		}
+    
+    private final PrintWriter outStream;
+    private final BufferedReader inStream;
+    // Creating Brain
+    private Brain myBrain;
+    
+    public Player(PrintWriter output, BufferedReader input) {
+        this.outStream = output;
+        this.inStream = input;
+        // Initializing the brain
+        this.myBrain = new Brain();
+    }
+    
+    public void run() {
+        String input;
+        try {
+            // Block until engine sends us a packet; read it into input.
+            while ((input = inStream.readLine()) != null) {
+        
+                // We call this function to perform parsing
+                parsePacket(input);
+                
+                // Right Now: It's only printing game stats in dump file
+                System.out.println(input);
+                
+                String word = input.split(" ")[0];
+                if ("GETACTION".compareToIgnoreCase(word) == 0) {
+                    // When appropriate, reply to the engine with a legal
+                    // action.
+                    // The engine will ignore all spurious packets you send.
+                    // The engine will also check/fold for you if you return an
+                    // illegal action.
+                    
+                    // It checks the brain to get the action
+                    
+                    String action = this.myBrain.decision();
+                    outStream.println(action);
+                    
+                } else if ("REQUESTKEYVALUES".compareToIgnoreCase(word) == 0) {
+                    // At the end, engine will allow bot to send key/value pairs to store.
+                    // FINISH indicates no more to store.
+                    outStream.println("FINISH");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("IOException: " + e.getMessage());
+        }
 
-		System.out.println("Gameover, engine disconnected");
-		
-		// Once the server disconnects from us, close our streams and sockets.
-		try {
-			outStream.close();
-			inStream.close();
-		} catch (IOException e) {
-			System.out.println("Encounterd problem shutting down connections");
-			e.printStackTrace();
-		}
-	}
-	
+        System.out.println("Gameover, engine disconnected");
+        
+        // Once the server disconnects from us, close our streams and sockets.
+        try {
+            outStream.close();
+            inStream.close();
+        } catch (IOException e) {
+            System.out.println("Encounterd problem shutting down connections");
+            e.printStackTrace();
+        }
+    }
+    
     public void parsePacket(String packet) throws IOException{
         /**
          * This function parse the necessary packets accordingly
@@ -136,19 +100,11 @@ public class Player {
     private void processNewGame(String word[]){
         String myName = word[1];
         String opponentName = word[2];
-        int stackSize = Integer.parseInt(word[3]);
-        int bb = Integer.parseInt(word[4]);
-        
-        this.names[0] = myName;
-        this.names[1] = opponentName;
-        this.numberOfHands = Integer.parseInt(word[5]);
-        this.timeBank = Double.parseDouble(word[6]);
-        
-        //// Reset Historian!!
-        
+        int handsNumber = Integer.parseInt(word[5]);
+        double bankTime = Double.parseDouble(word[6]);
+       
         // Call the brain saying that new game is starting.
-        
-        this.myBrain.newGame(myName, opponentName, this.numberOfHands, this.timeBank);
+        this.myBrain.newGame(myName, opponentName, handsNumber, bankTime);
     }
     
     private void processKeyValue(String word[]){
@@ -159,25 +115,26 @@ public class Player {
         int bytesLeft = Integer.parseInt(word[1]);
         outStream.println("FINISH");
     }
-	
+    
     private void processNewHand(String word[]){
-        this.handId = Integer.parseInt(word[1]);
-        this.isButton = Boolean.valueOf(word[2]);
+        int handId = Integer.parseInt(word[1]);
+        boolean isButton = Boolean.valueOf(word[2]);
+        String[] myHoleCards = new String[4];
         
-        this.myHoleCards[0] = word[3+ 0];
+        myHoleCards[0] = word[3+ 0];
 
-        this.myHoleCards[1] = word[3+ 1];
+        myHoleCards[1] = word[3+ 1];
 
-        this.myHoleCards[2] = word[3+ 2];
+        myHoleCards[2] = word[3+ 2];
 
-        this.myHoleCards[3] = word[3+ 3];
+        myHoleCards[3] = word[3+ 3];
         
-        this.myBank = Integer.parseInt(word[7]);
-        this.otherBank = Integer.parseInt(word[8]);
-        this.timeBank = Double.parseDouble(word[9]);
+        int myBank = Integer.parseInt(word[7]);
+        int otherBank = Integer.parseInt(word[8]);
+        double timeBank = Double.parseDouble(word[9]);
         
-        this.myBrain.newHand(this.handId, this.isButton, this.myHoleCards, 
-                this.myBank, this.otherBank, this.timeBank);
+        this.myBrain.newHand(handId, isButton, myHoleCards, 
+                myBank, otherBank, timeBank);
     }
     
     private void processGetAction(String word[]){
@@ -207,15 +164,15 @@ public class Player {
             index++;
         }
         
-        this.timeBank = Double.parseDouble(word[index]);
+        double timeBank = Double.parseDouble(word[index]);
         this.myBrain.getAction(potSize, numBoardCards, 
                 boardCards, numLastActions, lastActions, 
-                numLegalActions, legalActions, this.timeBank);
+                numLegalActions, legalActions, timeBank);
     }
     
     private void processHandOver(String word[]){
-        this.myBank = Integer.parseInt(word[1]);
-        this.otherBank = Integer.parseInt(word[2]);
+        int myBank = Integer.parseInt(word[1]);
+        int otherBank = Integer.parseInt(word[2]);
         
         int numBoardCards = Integer.parseInt(word[3]);
         
@@ -235,6 +192,6 @@ public class Player {
             index++;
         }
         
-        this.timeBank = Double.parseDouble(word[index]);
+        double timeBank = Double.parseDouble(word[index]);
     }
 }
