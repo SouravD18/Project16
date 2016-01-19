@@ -21,10 +21,15 @@ final class Enumerator extends Thread {
     private long[]       boardCardsBits = new long[5];
     private long[][]     handCardsBits = new long[2][4];
     //  private long		board1, board2, board3, board4, board5;
-
+    
+    @Override public final void run() {
+        if (nUnknown > 0)
+            enumBoards();
+        else
+            enumBoardsNoUnknown();
+    }
 
     Enumerator(final int instance, final int instances, final String[][] holeCards, final String[] board) {
-
         super("Enumerator" + instance);
         startIx = instance;
         increment = instances;
@@ -55,7 +60,6 @@ final class Enumerator extends Thread {
         }
 
         nPlayers = 2;
-
         this.nUnknown = holeCards[1].length == 0 ? 1 : 0;
         nBoardCards = board.length;
         wins = new long[nPlayers];
@@ -79,13 +83,6 @@ final class Enumerator extends Thread {
 
     double[] getPartialPots() {
         return partialPots;
-    }
-
-    @Override public final void run() {
-        if (nUnknown > 0)
-            enumBoards();
-        else
-            enumBoardsNoUnknown();
     }
 
     private void enum2GuysNoFlop() { // special case for speed of EnumBoardsNoUnknown

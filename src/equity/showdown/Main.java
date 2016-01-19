@@ -7,9 +7,9 @@ public class Main{
     public static void main(String[] args) {
         long startTime = System.nanoTime();
         
-        String[] board = {"6d", "6c", "5h", "5s", "Tc"};
-        String[] myCards = {"Td","4c","7h","As"};
-        String[] opponentCards = {};//"Kc","Qh", "3s", "5s"};
+        String[] board = {}; //"6d", "6c", "5h", "5d"
+        String[] myCards = {"Td","4c","7h","As"}; //"Td","4c","7h","As"
+        String[] opponentCards = {};//"Kc","Qh", "3s", "5s"}; //"Kc","Qh", "3s", "5s"
         String[][] holeCards = {myCards, opponentCards};
         
         Enumerator[] enumerators = new Enumerator[threads];
