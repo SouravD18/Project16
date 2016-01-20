@@ -19,6 +19,7 @@ public class Brain {
     double timeBank = 0;
     int handId = 0;
     int handsRemaining = 0;
+    public double timePerHandLeft = 0.1;
     
     String[] holeCards = new String[4];
     List<String> boardCards = new ArrayList<String>();
@@ -97,6 +98,7 @@ public class Brain {
         this.myBankRoll = myBank;
         this.otherBankRoll = otherBank;
         this.timeBank = time;
+        this.handsRemaining--;
         
         // Reset some stuff:
         this.turnCounter = 0;
@@ -137,6 +139,7 @@ public class Brain {
         // Processing legalActions
         this.action.process(legalActions);
         this.timeBank = time;
+        this.timePerHandLeft = timeBank/handsRemaining;
     }
     
     /**
@@ -158,7 +161,6 @@ public class Brain {
             return river();
         }
         else{
-           
             return "CHECK";
         }
     }

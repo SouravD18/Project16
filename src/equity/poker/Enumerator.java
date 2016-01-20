@@ -103,12 +103,10 @@ final class Enumerator extends Thread {
     }
 
     @Override public final void run() {
-        if (!isSimulation)
-            enumBoards();
-        else {
+        if (isSimulation)
             simulateBoardsAndHands();
-        }
-        //enumAllDecksWithKnownHands() //call this if all hands are known but the board is not
+        else
+            enumBoards();
     }
 
     /**
@@ -117,21 +115,18 @@ final class Enumerator extends Thread {
      * @param instances Number of threads
      * @param myCards Your array of 4 cards - specified as e.g. "Ac" or "4s"
      * @param board Can contain either 0 cards, 3, 4, or 5 cards
+     * @param numSimulations If equal to 0, it enums every possibility, else sets # of simulations per core
      */
-    Enumerator(final int instance, final int instances, final String[] myCards, final String[] board) {
+    Enumerator(final int instance, final int instances, final String[] myCards, final String[] board, int numSimulations) {
         super("Enumerator" + instance);
         startIx = instance;
         increment = instances;
-
-        if (board.length == 5){
+        if (numSimulations == 0)
             isSimulation = false;
-            numSimulations = 0;
-        }
-        else{
+        else
             isSimulation = true;
-            numSimulations = 1000;
-        }
-
+        this.numSimulations = numSimulations;
+            
         for (int j = 0; j < myCards.length; j++){
             this.myCards[j] = cardMap.get(myCards[j]);
         }
