@@ -12,7 +12,7 @@ public class Main{
 //        Enumerator enu = new Enumerator();
 //        
 //        long startTime = System.nanoTime();
-//        String[] board = {"4d", "7s", "8s", "Td", "Qh"}; 
+//        String[] board = {}; 
 //        String[] myCards = {"5d", "7c", "Ah", "Qs"};
 //
 //        double equity = getEquity(board, myCards, 400);
@@ -40,13 +40,13 @@ public class Main{
      * @return Equity
      */
     public static double getEquity(String[] board, String[] myCards, int numSimulations){
-        if (board.length == 0){
-            long cardSerial = Enumerator.cardMap.get(myCards[0]);
-            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[1]);
-            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[2]);
-            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[3]);
-            return Enumerator.startingHandEquityMap.get(cardSerial);
-        }
+//        if (board.length == 0){
+//            long cardSerial = Enumerator.cardMap.get(myCards[0]);
+//            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[1]);
+//            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[2]);
+//            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[3]);
+//            return Enumerator.startingHandEquityMap.get(cardSerial);
+//        }
         
         Enumerator[] enumerators = new Enumerator[threads];
         for (int i = 0; i < enumerators.length; i++) {
