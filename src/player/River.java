@@ -9,7 +9,7 @@ public class River {
      *   Please modify constants after simulations
      */
     
-    double reallyGoodEquity = .75;
+    double reallyGoodEquity = .85;
     double goodEquity = .65;
     double averageEquity = .5;
  

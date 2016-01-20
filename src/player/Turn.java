@@ -10,8 +10,8 @@ public class Turn {
      */
     
     double reallyGoodEquity = .75;
-    double goodEquity = .65;
-    double averageEquity = .5;
+    double goodEquity = .6;
+    double averageEquity = .4;
  
     public String takeAction(ProcessActions action, double equity, int potSize){
         

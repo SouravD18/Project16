@@ -26,7 +26,7 @@ final class Enumerator extends Thread {
     public final boolean isSimulation;
     public final int numSimulations;
     public static final Map<String, Long> cardMap = new HashMap<>();
-    private static final String[] deckArr = { 
+    public static final String[] deckArr = { 
             "2h", "2s", "2c", "2d",
             "3h", "3s", "3c", "3d", "4h", "4s", "4c", "4d", "5h", "5s", "5c",
             "5d", "6h", "6s", "6c", "6d", "7h", "7s", "7c", "7d", "8h", "8s",
@@ -117,7 +117,7 @@ final class Enumerator extends Thread {
      * @param board Can contain either 0 cards, 3, 4, or 5 cards
      * @param numSimulations If equal to 0, it enums every possibility, else sets # of simulations per core
      */
-    Enumerator(final int instance, final int instances, final String[] myCards, final String[] board, int numSimulations) {
+    public Enumerator(final int instance, final int instances, final String[] myCards, final String[] board, int numSimulations) {
         super("Enumerator" + instance);
         startIx = instance;
         increment = instances;
@@ -262,6 +262,65 @@ final class Enumerator extends Thread {
             throw new RuntimeException("We must know either 0, 3, 4, or 5 board cards");
         }
     }
+    
+    /**
+     * Called when all board cards are determined, now iterating through all possible opponent hands
+     * You MUST determine myHandValue here before calling potResults
+     */
+    private void enumOpponentHands() {
+        myHandValue = HandEval.OmahaHighEval(board, myCards);
+        for (int deckIx1 = 0; deckIx1 <= limitIx2; ++deckIx1) {
+            if (dealt[deckIx1])
+                continue;
+            opponentCards[0] = deck[deckIx1];
+            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx3; ++deckIx2) {
+                if (dealt[deckIx2])
+                    continue;
+                opponentCards[1] = deck[deckIx2];
+                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx4; ++deckIx3) {
+                    if (dealt[deckIx3])
+                        continue;
+                    opponentCards[2] = deck[deckIx3];
+                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx5; ++deckIx4) {
+                        if (dealt[deckIx4])
+                            continue;
+                        opponentCards[3] = deck[deckIx4];
+                        potResults();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Call this only when all 5 board cards are known
+     * This will make use of all cores in evaluating through 
+     * You MUST determine myHandValue here before calling potResults
+     */
+    private void enumOpponentHandsMultiThreaded() {
+        myHandValue = HandEval.OmahaHighEval(board, myCards);
+        for (int deckIx1 = startIx; deckIx1 <= limitIx2; deckIx1 += increment) {
+            if (dealt[deckIx1])
+                continue;
+            opponentCards[0] = deck[deckIx1];
+            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx3; ++deckIx2) {
+                if (dealt[deckIx2])
+                    continue;
+                opponentCards[1] = deck[deckIx2];
+                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx4; ++deckIx3) {
+                    if (dealt[deckIx3])
+                        continue;
+                    opponentCards[2] = deck[deckIx3];
+                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx5; ++deckIx4) {
+                        if (dealt[deckIx4])
+                            continue;
+                        opponentCards[3] = deck[deckIx4];
+                        potResults();
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Use this method to run simulations
@@ -401,72 +460,43 @@ final class Enumerator extends Thread {
                 dealt[card4] = false;
             }
             break;
+        case 5:
+            for (int i = 0; i < numSimulations; i++){
+                card1 = getRandomNumberRiver();
+                while (dealt[card1])
+                    card1 = getRandomNumberRiver();
+                dealt[card1] = true;
+                card2 = getRandomNumberRiver();
+                while (dealt[card2])
+                    card2 = getRandomNumberRiver();
+                dealt[card2] = true;
+                card3 = getRandomNumberRiver();
+                while (dealt[card3])
+                    card3 = getRandomNumberRiver();
+                dealt[card3] = true;
+                card4 = getRandomNumberRiver();
+                while (dealt[card4])
+                    card4 = getRandomNumberRiver();
+                opponentCards[0] = deck[card1];
+                opponentCards[1] = deck[card2];
+                opponentCards[2] = deck[card3];
+                opponentCards[3] = deck[card4];
+                myHandValue = HandEval.OmahaHighEval(board, myCards);
+                potResults();
+                
+                dealt[card1] = false;
+                dealt[card2] = false;
+                dealt[card3] = false;
+                dealt[card4] = false;
+            }
+            break;
         default:
             break;
         }
 
     }
-
-    /**
-     * Called when all board cards are determined, now iterating through all possible opponent hands
-     * You MUST determine myHandValue here before calling potResults
-     */
-    private void enumOpponentHands() {
-        myHandValue = HandEval.OmahaHighEval(board, myCards);
-        for (int deckIx1 = 0; deckIx1 <= limitIx2; ++deckIx1) {
-            if (dealt[deckIx1])
-                continue;
-            opponentCards[0] = deck[deckIx1];
-            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx3; ++deckIx2) {
-                if (dealt[deckIx2])
-                    continue;
-                opponentCards[1] = deck[deckIx2];
-                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx4; ++deckIx3) {
-                    if (dealt[deckIx3])
-                        continue;
-                    opponentCards[2] = deck[deckIx3];
-                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx5; ++deckIx4) {
-                        if (dealt[deckIx4])
-                            continue;
-                        opponentCards[3] = deck[deckIx4];
-                        potResults();
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Call this only when all 5 board cards are known
-     * This will make use of all cores in evaluating through 
-     * You MUST determine myHandValue here before calling potResults
-     */
-    private void enumOpponentHandsMultiThreaded() {
-        myHandValue = HandEval.OmahaHighEval(board, myCards);
-        for (int deckIx1 = startIx; deckIx1 <= limitIx2; deckIx1 += increment) {
-            if (dealt[deckIx1])
-                continue;
-            opponentCards[0] = deck[deckIx1];
-            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx3; ++deckIx2) {
-                if (dealt[deckIx2])
-                    continue;
-                opponentCards[1] = deck[deckIx2];
-                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx4; ++deckIx3) {
-                    if (dealt[deckIx3])
-                        continue;
-                    opponentCards[2] = deck[deckIx3];
-                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx5; ++deckIx4) {
-                        if (dealt[deckIx4])
-                            continue;
-                        opponentCards[3] = deck[deckIx4];
-                        potResults();
-                    }
-                }
-            }
-        }
-    }
     
-    public int getRandomNumberPre(){
+    private int getRandomNumberPre(){
         long x = System.nanoTime();
         x ^= (x << 21);
         x ^= (x >>> 35);
@@ -474,7 +504,7 @@ final class Enumerator extends Thread {
         return (int) Math.floorMod(x, 48);
     }
     
-    public int getRandomNumberFlop(){
+    private int getRandomNumberFlop(){
         long x = System.nanoTime();
         x ^= (x << 21);
         x ^= (x >>> 35);
@@ -482,11 +512,19 @@ final class Enumerator extends Thread {
         return (int) Math.floorMod(x, 45);
     }
     
-    public int getRandomNumberTurn(){
+    private int getRandomNumberTurn(){
         long x = System.nanoTime();
         x ^= (x << 21);
         x ^= (x >>> 35);
         x ^= (x << 4);
         return (int) Math.floorMod(x, 44);
+    }
+    
+    private int getRandomNumberRiver(){
+        long x = System.nanoTime();
+        x ^= (x << 21);
+        x ^= (x >>> 35);
+        x ^= (x << 4);
+        return (int) Math.floorMod(x, 43);
     }
 }

@@ -1,41 +1,34 @@
 package player;
 
 public class PreFlop {
-    /**
-     * Simple version:
-     *      We'll take account the following stuff:
-     *      --> Expected Value for calling
-     *      --> Equity
-     *   Please modify constants after simulations
-     */
-    
-    double reallyGoodEquity = .7;
-    double goodEquity = .5;
-    double averageEquity = .3;
+    double greatEquity = .7;
+    double goodEquity = .6;
+    double standardEquity = .5;
+    double badEquity = .375;
  
     public String takeAction(ProcessActions action, double equity, int potSize){
         
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         
-        if(equity >= reallyGoodEquity){
+        if (equity >= greatEquity){
             // Raise Maximum.
             return action.bet(200);
         }
-        else if(equity >= goodEquity){
+        else if (equity >= goodEquity){
             // Bet according to EV
             return action.bet(callAmount + (int) evForCall); 
         }
-        else if(equity >= averageEquity){
+        else if (equity >= badEquity){
             // Just call if ev > 0
             if(evForCall > 0){
                 return action.call();
             }
-            else{
+            else {
                 return action.check();
             }
         }
-        else{
+        else {
             // Check or fold
             return action.check();
         }

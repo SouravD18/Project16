@@ -19,7 +19,9 @@ public class Brain {
     double timeBank = 0;
     int handId = 0;
     int handsRemaining = 0;
-    public double timePerHandLeft = 0.1;
+    double timePerHandLeft = 0.1;
+    
+    public int numSimulations = 500;
     
     String[] holeCards = new String[4];
     List<String> boardCards = new ArrayList<String>();
@@ -38,8 +40,6 @@ public class Brain {
     // List[2] = last action
     Action[] actions = new Action[3];
     int numberOfLastActions = 0;
-    
-
     
     /**
      *  Betting turn trackers
@@ -100,6 +100,17 @@ public class Brain {
         this.timeBank = time;
         this.handsRemaining--;
         
+        timePerHandLeft = timeBank / handsRemaining;
+        if (timePerHandLeft < 0.085)
+            numSimulations = 200;
+        else if (timePerHandLeft < 0.095)
+            numSimulations = 400;
+        else if (timePerHandLeft < 0.105)
+            numSimulations = 500;
+        else if (timePerHandLeft < 0.115)
+            numSimulations = 600;
+        else numSimulations = 800;
+        
         // Reset some stuff:
         this.turnCounter = 0;
         this.boardCards.clear();
@@ -139,7 +150,6 @@ public class Brain {
         // Processing legalActions
         this.action.process(legalActions);
         this.timeBank = time;
-        this.timePerHandLeft = timeBank/handsRemaining;
     }
     
     /**
@@ -165,16 +175,15 @@ public class Brain {
         }
     }
     
-    /**
-     * Edited: 19th Jan by sourav18
-     *  Check the classes for descriptions
-     */
     private String preFlop(){
         this.preFlopBetTurn += 1;
-        return action.call();
+        if (this.flopBetTurn == 1){
+            String[] board = {};
+            equity = Main.getEquity(board, this.holeCards, numSimulations);
+        }
+        return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot);
     }
 
-     
     private String flop(){
         this.flopBetTurn += 1;
         if(this.flopBetTurn == 1){
@@ -182,9 +191,7 @@ public class Brain {
             board[0] = this.boardCards.get(0);
             board[1] = this.boardCards.get(1);
             board[2] = this.boardCards.get(2);
-            
-            equity = (new Main()).getEquity(board, 
-                    this.holeCards);
+            equity = Main.getEquity(board, this.holeCards, numSimulations);
         }
         return (new Flop()).takeAction(this.action, this.equity, this.currentPot);
     }    
@@ -197,9 +204,7 @@ public class Brain {
             board[1] = this.boardCards.get(1);
             board[2] = this.boardCards.get(2);
             board[3] = this.boardCards.get(3);
-            
-            equity = (new Main()).getEquity(board, 
-                    this.holeCards);
+            equity = Main.getEquity(board, this.holeCards, numSimulations);
         }
         return (new Turn()).takeAction(this.action, this.equity, this.currentPot);
     }
@@ -213,9 +218,7 @@ public class Brain {
             board[2] = this.boardCards.get(2);
             board[3] = this.boardCards.get(3);
             board[4] = this.boardCards.get(4);
-            
-            equity = (new Main()).getEquity(board, 
-                    this.holeCards);
+            equity = Main.getEquity(board, this.holeCards, numSimulations);
         }
         return (new River()).takeAction(this.action, this.equity, this.currentPot);
     }    
