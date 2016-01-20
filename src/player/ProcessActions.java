@@ -1,5 +1,7 @@
 package player;
 
+import java.util.OptionalInt;
+
 public class ProcessActions {
     
     boolean checkPossible = false;
@@ -10,6 +12,9 @@ public class ProcessActions {
     // Lower range of bet
     int lowerRange = 0;
     
+    // Helper field to calculate call amount:
+    int moneyGiven = 0;
+    int opponentMoney = 0;
     /**
      * Constructor
      */
@@ -21,7 +26,7 @@ public class ProcessActions {
      * process actions
      * @param legalAction: String with legal actions
      */
-    public void process(String[] legalActions){
+    public void process(String[] legalActions, Action[] actions){
         checkPossible = false;
         betPossible = false;
         raisePossible = false;
@@ -29,6 +34,9 @@ public class ProcessActions {
             // Checks if call or check
             if(action.split(":")[0].equals("CHECK")){
                 this.checkPossible = true;
+                // Whenever check is possible, both of use have no money:
+                this.moneyGiven = 0;
+                this.opponentMoney = 0;                       
             }
             else if(action.split(":")[0].equals("CALL")){
                 this.checkPossible = false;
@@ -46,6 +54,27 @@ public class ProcessActions {
                 this.upperRange = Integer.parseInt(action.split(":")[2]);
             }
         }
+        
+        if(actions[2].actionType().equals("POST")){
+            this.moneyGiven = 1;
+            this.opponentMoney = 2;
+        }
+        // If actor is opponent
+        else if(!(actions[2].actor().equals("NONE"))){
+            if(actions[0].actionType().equals("POST")){
+                if(actions[2].actionType().equals("RAISE")){
+                    this.opponentMoney = actions[2].amount() + 0;
+                    this.moneyGiven = 2;
+                }
+            }
+            else if(actions[2].actionType().equals("BET")){
+                this.opponentMoney = actions[2].amount() + 0;
+                this.moneyGiven = 0;
+            }
+            else if(actions[2].actionType().equals("RAISE")){
+                this.opponentMoney = actions[2].amount() + 0;
+            }
+        }
     }
     // Now, some action classes to help out making actions
     /**
@@ -58,6 +87,7 @@ public class ProcessActions {
             return "CHECK";
         }
         else{
+            this.moneyGiven = this.opponentMoney + 0;
             return "CALL";
         }
     }
@@ -105,12 +135,15 @@ public class ProcessActions {
         }
         
         if(amount < this.lowerRange){
+            this.moneyGiven = this.lowerRange + 0;
             return betOrRaise.concat(Integer.toString(this.lowerRange));
         }
         else if(amount > this.upperRange){
+            this.moneyGiven = this.upperRange + 0;
             return betOrRaise.concat(Integer.toString(this.upperRange));
         }
         else{
+            this.moneyGiven = amount + 0;
             return betOrRaise.concat(Integer.toString(amount));
         }
     }
@@ -124,7 +157,7 @@ public class ProcessActions {
         }
         else{
             // RN, I am assuming this will be the call size
-            return this.lowerRange;
+            return (this.opponentMoney - this.moneyGiven);
         }
     }
 

@@ -9,11 +9,11 @@ public class Turn {
      *   Please modify constants after simulations
      */
     
-    double reallyGoodEquity = .75;
-    double goodEquity = .6;
-    double averageEquity = .4;
+    double reallyGoodEquity = Constants.turnGreat;
+    double goodEquity = Constants.turnGood;
+    double averageEquity = Constants.turnAverage;
  
-    public String takeAction(ProcessActions action, double equity, int potSize){
+    public String takeAction(ProcessActions action, double equity, int potSize, int turn){
         
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
@@ -24,7 +24,13 @@ public class Turn {
         }
         else if(equity >= goodEquity){
             // Bet according to EV
-            return action.bet(callAmount + (int) evForCall); 
+            // For safety: No 2nd-bet
+            if(turn < 2){
+                return action.bet(callAmount + (int) evForCall);
+            }
+            else{
+                return action.call();
+            }
         }
         else if(equity >= averageEquity){
             // Just call if ev > 0
