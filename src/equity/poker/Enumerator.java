@@ -1,4 +1,9 @@
 package equity.poker;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,9 +24,9 @@ final class Enumerator extends Thread {
     private int         myHandValue;
     private int         opponentHandValue;
     private final int   increment;  // of outer loop through deck -- number of threads
-    public long[]       wins = {0L};
-    public long[]       splits = {0L};
-    public long[]       losses = {0L};
+    public long         wins = 0L;
+    public long         splits = 0L;
+    public long         losses = 0L;
 
     public final boolean isSimulation;
     public final int numSimulations;
@@ -35,71 +40,71 @@ final class Enumerator extends Thread {
             "Ah", "As", "Ac", "Ad" 
     };
     public static final Set<String> deckSet = new HashSet<String>(Arrays.asList(deckArr));
+    public static HashMap<Long, Double> startingHandEquityMap;
     static {
         cardMap.put("2c", 0x1L << 0);
         cardMap.put("2d", 0x1L << 16);
         cardMap.put("2h", 0x1L << 32);
         cardMap.put("2s", 0x1L << 48);
-
         cardMap.put("3c", 0x1L << 1);
         cardMap.put("3d", 0x1L << 17);
         cardMap.put("3h", 0x1L << 33);
         cardMap.put("3s", 0x1L << 49);
-
         cardMap.put("4c", 0x1L << 2);
         cardMap.put("4d", 0x1L << 18);
         cardMap.put("4h", 0x1L << 34);
         cardMap.put("4s", 0x1L << 50);
-
         cardMap.put("5c", 0x1L << 3);
         cardMap.put("5d", 0x1L << 19);
         cardMap.put("5h", 0x1L << 35);
         cardMap.put("5s", 0x1L << 51);
-
         cardMap.put("6c", 0x1L << 4);
         cardMap.put("6d", 0x1L << 20);
         cardMap.put("6h", 0x1L << 36);
         cardMap.put("6s", 0x1L << 52);
-
         cardMap.put("7c", 0x1L << 5);
         cardMap.put("7d", 0x1L << 21);
         cardMap.put("7h", 0x1L << 37);
         cardMap.put("7s", 0x1L << 53);
-
         cardMap.put("8c", 0x1L << 6);
         cardMap.put("8d", 0x1L << 22);
         cardMap.put("8h", 0x1L << 38);
         cardMap.put("8s", 0x1L << 54);
-
         cardMap.put("9c", 0x1L << 7);
         cardMap.put("9d", 0x1L << 23);
         cardMap.put("9h", 0x1L << 39);
         cardMap.put("9s", 0x1L << 55);
-
         cardMap.put("Tc", 0x1L << 8);
         cardMap.put("Td", 0x1L << 24);
         cardMap.put("Th", 0x1L << 40);
         cardMap.put("Ts", 0x1L << 56);
-
         cardMap.put("Jc", 0x1L << 9);
         cardMap.put("Jd", 0x1L << 25);
         cardMap.put("Jh", 0x1L << 41);
         cardMap.put("Js", 0x1L << 57);
-
         cardMap.put("Qc", 0x1L << 10);
         cardMap.put("Qd", 0x1L << 26);
         cardMap.put("Qh", 0x1L << 42);
         cardMap.put("Qs", 0x1L << 58);
-
         cardMap.put("Kc", 0x1L << 11);
         cardMap.put("Kd", 0x1L << 27);
         cardMap.put("Kh", 0x1L << 43);
         cardMap.put("Ks", 0x1L << 59);
-
         cardMap.put("Ac", 0x1L << 12);
         cardMap.put("Ad", 0x1L << 28);
         cardMap.put("Ah", 0x1L << 44);
         cardMap.put("As", 0x1L << 60);
+
+        FileInputStream fis;
+        try {
+            fis = new FileInputStream(new File("startingMap"));
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            startingHandEquityMap = (HashMap<Long, Double>)ois.readObject();
+            ois.close();
+            fis.close();
+        } catch (ClassNotFoundException | IOException e1) {
+            e1.printStackTrace();
+        }
     }
 
     @Override public final void run() {
@@ -126,14 +131,14 @@ final class Enumerator extends Thread {
         else
             isSimulation = true;
         this.numSimulations = numSimulations;
-            
+
         for (int j = 0; j < myCards.length; j++){
             this.myCards[j] = cardMap.get(myCards[j]);
         }
         for (int j = 0; j < board.length; j++){
             this.board[j] = cardMap.get(board[j]);
         }
-
+        
         int nCardsInDeck = 52 - (board.length + myCards.length);
         this.deck = new long[nCardsInDeck];
         dealt = new boolean[nCardsInDeck];
@@ -156,6 +161,31 @@ final class Enumerator extends Thread {
         limitIx4 = nCardsInDeck - 2;
         limitIx5 = nCardsInDeck - 1;
     }
+    
+    /**
+     * Constructor only to be used when starting up the bot
+     * So that all objects can be loaded onto memory without
+     * Counting against the time limit
+     */
+    public Enumerator(){
+        startIx = 0;
+        nBoardCards = 0;
+        deck = null;
+        dealt = null;
+        limitIx1 = 0;
+        limitIx2 = 0;
+        limitIx3 = 0;
+        limitIx4 = 0;
+        limitIx5 = 0;
+        board = null;
+        myCards = null;
+        opponentCards = null;
+        myHandValue = 0;
+        opponentHandValue = 0;
+        increment = 0;
+        isSimulation = false;
+        numSimulations = 0;
+    }
 
     /**
      * Called whenever both you and your opponent's hands are known
@@ -176,10 +206,10 @@ final class Enumerator extends Thread {
                             handValue0 = HandEval.OmahaHighEval(board, myCards);
                             handValue1 = HandEval.OmahaHighEval(board, opponentCards);
                             if (handValue0 > handValue1)
-                                wins[0]++;
+                                wins++;
                             else if (handValue0 == handValue1)
-                                splits[0]++;
-                            else losses[0]++;
+                                splits++;
+                            else losses++;
                         }
                     }
                 }
@@ -195,10 +225,10 @@ final class Enumerator extends Thread {
     private void potResults() {
         opponentHandValue = HandEval.OmahaHighEval(board, opponentCards);
         if (myHandValue > opponentHandValue)
-            wins[0]++;
+            wins++;
         else if (myHandValue == opponentHandValue)
-            splits[0]++;
-        else losses[0]++;
+            splits++;
+        else losses++;
     }
 
     /**
@@ -262,7 +292,7 @@ final class Enumerator extends Thread {
             throw new RuntimeException("We must know either 0, 3, 4, or 5 board cards");
         }
     }
-    
+
     /**
      * Called when all board cards are determined, now iterating through all possible opponent hands
      * You MUST determine myHandValue here before calling potResults
@@ -374,7 +404,7 @@ final class Enumerator extends Thread {
                 opponentCards[3] = deck[card4];
                 myHandValue = HandEval.OmahaHighEval(board, myCards);
                 potResults();
-                
+
                 dealt[deckIx1] = false;
                 dealt[deckIx2] = false;
                 dealt[deckIx3] = false;
@@ -417,7 +447,7 @@ final class Enumerator extends Thread {
                 opponentCards[3] = deck[card4];
                 myHandValue = HandEval.OmahaHighEval(board, myCards);
                 potResults();
-                
+
                 dealt[deckIx4] = false;
                 dealt[deckIx5] = false;
                 dealt[card1] = false;
@@ -452,7 +482,7 @@ final class Enumerator extends Thread {
                 opponentCards[3] = deck[card4];
                 myHandValue = HandEval.OmahaHighEval(board, myCards);
                 potResults();
-                
+
                 dealt[deckIx5] = false;
                 dealt[card1] = false;
                 dealt[card2] = false;
@@ -483,7 +513,7 @@ final class Enumerator extends Thread {
                 opponentCards[3] = deck[card4];
                 myHandValue = HandEval.OmahaHighEval(board, myCards);
                 potResults();
-                
+
                 dealt[card1] = false;
                 dealt[card2] = false;
                 dealt[card3] = false;
@@ -493,9 +523,8 @@ final class Enumerator extends Thread {
         default:
             break;
         }
-
     }
-    
+
     private int getRandomNumberPre(){
         long x = System.nanoTime();
         x ^= (x << 21);
@@ -503,7 +532,7 @@ final class Enumerator extends Thread {
         x ^= (x << 4);
         return (int) Math.floorMod(x, 48);
     }
-    
+
     private int getRandomNumberFlop(){
         long x = System.nanoTime();
         x ^= (x << 21);
@@ -511,7 +540,7 @@ final class Enumerator extends Thread {
         x ^= (x << 4);
         return (int) Math.floorMod(x, 45);
     }
-    
+
     private int getRandomNumberTurn(){
         long x = System.nanoTime();
         x ^= (x << 21);
@@ -519,7 +548,7 @@ final class Enumerator extends Thread {
         x ^= (x << 4);
         return (int) Math.floorMod(x, 44);
     }
-    
+
     private int getRandomNumberRiver(){
         long x = System.nanoTime();
         x ^= (x << 21);

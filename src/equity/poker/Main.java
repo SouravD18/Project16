@@ -9,9 +9,11 @@ public class Main{
     }
 
     public static void main(String[] args) {
+//        Enumerator enu = new Enumerator();
+//        
 //        long startTime = System.nanoTime();
-//        String[] board = {"3s", "3d", "3h", "3c", "4c"}; 
-//        String[] myCards = {"2s", "2d", "2h", "2c"};
+//        String[] board = {}; 
+//        String[] myCards = {"5d", "7c", "Ah", "Qs"};
 //
 //        double equity = getEquity(board, myCards, 400);
 //        long endTime = System.nanoTime();
@@ -38,6 +40,14 @@ public class Main{
      * @return Equity
      */
     public static double getEquity(String[] board, String[] myCards, int numSimulations){
+        if (board.length == 0){
+            long cardSerial = Enumerator.cardMap.get(myCards[0]);
+            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[1]);
+            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[2]);
+            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[3]);
+            return Enumerator.startingHandEquityMap.get(cardSerial);
+        }
+        
         Enumerator[] enumerators = new Enumerator[threads];
         for (int i = 0; i < enumerators.length; i++) {
             enumerators[i] = new Enumerator(i, threads, myCards, board, numSimulations);
@@ -53,9 +63,9 @@ public class Main{
         long splits = 0;
         long losses = 0;
         for (Enumerator e : enumerators){
-            wins += e.wins[0];
-            splits += e.splits[0];
-            losses += e.losses[0];
+            wins += e.wins;
+            splits += e.splits;
+            losses += e.losses;
         }
         //System.out.println("Number of trials is " + (wins + splits + losses));
         return (wins + splits/2.0) / (wins + splits + losses);
