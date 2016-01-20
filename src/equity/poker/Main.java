@@ -12,7 +12,7 @@ public class Main{
 //        Enumerator enu = new Enumerator();
 //        
 //        long startTime = System.nanoTime();
-//        String[] board = {}; 
+//        String[] board = {"4d", "7s", "8s", "Td", "Qh"}; 
 //        String[] myCards = {"5d", "7c", "Ah", "Qs"};
 //
 //        double equity = getEquity(board, myCards, 400);

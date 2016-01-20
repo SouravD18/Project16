@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-final class Enumerator extends Thread {
+public final class Enumerator extends Thread {
 
     private final int	startIx;	// where to start outer loop through deck
     private final int	nBoardCards;

@@ -1,6 +1,7 @@
 package player;
 
 import java.io.BufferedReader;
+import equity.poker.Enumerator;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -62,7 +63,7 @@ public class Main {
 			// Reader to read packets from engine
 			BufferedReader inStream = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
-			
+			Enumerator enu = new Enumerator();
 			Player player = new Player(outStream, inStream);
 			player.run();
 			
