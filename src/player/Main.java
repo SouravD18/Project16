@@ -64,7 +64,7 @@ public class Main {
 			BufferedReader inStream = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
 
-//			Enumerator enu = new Enumerator();
+			Enumerator enu = new Enumerator();
 
 			Player player = new Player(outStream, inStream);
 			player.run();

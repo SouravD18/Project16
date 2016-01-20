@@ -9,17 +9,18 @@ public class Main{
     }
 
     public static void main(String[] args) {
-//        Enumerator enu = new Enumerator();
-//        
-//        long startTime = System.nanoTime();
-//        String[] board = {}; 
-//        String[] myCards = {"5d", "7c", "Ah", "Qs"};
-//
-//        double equity = getEquity(board, myCards, 400);
-//        long endTime = System.nanoTime();
-//        double duration = ((endTime - startTime))/1000000.0;  //divide by 1000000 to get milliseconds.
-//        System.out.println("Duration is " + duration + " milliseconds");
-//        System.out.println(equity);
+        Enumerator enu = new Enumerator();
+        
+        
+
+        long startTime = System.nanoTime();
+        String[] board = {};
+        String[] myCards = {"2c", "2d", "2h", "2s"};
+        double equity = getEquity(board, myCards, 400);
+        long endTime = System.nanoTime();
+        double duration = ((endTime - startTime))/1000000.0;  //divide by 1000000 to get milliseconds.
+        System.out.println("Duration is " + duration + " milliseconds");
+        System.out.println(equity);
     }
 
     /**
@@ -40,14 +41,14 @@ public class Main{
      * @return Equity
      */
     public static double getEquity(String[] board, String[] myCards, int numSimulations){
-//        if (board.length == 0){
-//            long cardSerial = Enumerator.cardMap.get(myCards[0]);
-//            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[1]);
-//            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[2]);
-//            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[3]);
-//            return Enumerator.startingHandEquityMap.get(cardSerial);
-//        }
-        
+        if (board.length == 0){
+            long cardSerial = Enumerator.cardMap.get(myCards[0]);
+            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[1]);
+            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[2]);
+            cardSerial = cardSerial | Enumerator.cardMap.get(myCards[3]);
+            return Enumerator.startingHandEquityMap.get(cardSerial);
+        }
+
         Enumerator[] enumerators = new Enumerator[threads];
         for (int i = 0; i < enumerators.length; i++) {
             enumerators[i] = new Enumerator(i, threads, myCards, board, numSimulations);
@@ -71,38 +72,38 @@ public class Main{
         return (wins + splits/2.0) / (wins + splits + losses);
     }
 
-//    public static void printStartingEquityDistros(int numSimulations){
-//        PrintWriter pr = null;
-//        try {
-//            pr = new PrintWriter(new BufferedWriter(new FileWriter("startingEquity")));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        
-//        long card1, card2, card3, card4;
-//        String[] myCards = new String[4];
-//        String[] board = {};
-//        for (int a = 0; a < Enumerator.deckArr.length - 3; a++){
-//            myCards[0] = Enumerator.deckArr[a];
-//            card1 = Enumerator.cardMap.get(myCards[0]);
-//            for (int b = a + 1; b < Enumerator.deckArr.length - 2; b++){
-//                myCards[1] = Enumerator.deckArr[b];
-//                System.out.println("Currently at " + myCards[1]);
-//                card2 = card1 | Enumerator.cardMap.get(myCards[1]);
-//                for (int c = b + 1; c < Enumerator.deckArr.length - 1; c++){
-//                    myCards[2] = Enumerator.deckArr[c];
-//                    card3 = card2 | Enumerator.cardMap.get(myCards[2]);
-//                    for (int d = c + 1; d < Enumerator.deckArr.length; d++){
-//                        myCards[3] = Enumerator.deckArr[d];
-//                        card4 = card3 | Enumerator.cardMap.get(myCards[3]);
-//                        double equity = getEquity(board, myCards, numSimulations);
-//                        pr.println(card4 + " " + equity);
-//                    }
-//                }
-//            }
-//        }
-//        pr.close();
-//    }
+    //    public static void printStartingEquityDistros(int numSimulations){
+    //        PrintWriter pr = null;
+    //        try {
+    //            pr = new PrintWriter(new BufferedWriter(new FileWriter("startingEquity")));
+    //        } catch (IOException e) {
+    //            e.printStackTrace();
+    //        }
+    //        
+    //        long card1, card2, card3, card4;
+    //        String[] myCards = new String[4];
+    //        String[] board = {};
+    //        for (int a = 0; a < Enumerator.deckArr.length - 3; a++){
+    //            myCards[0] = Enumerator.deckArr[a];
+    //            card1 = Enumerator.cardMap.get(myCards[0]);
+    //            for (int b = a + 1; b < Enumerator.deckArr.length - 2; b++){
+    //                myCards[1] = Enumerator.deckArr[b];
+    //                System.out.println("Currently at " + myCards[1]);
+    //                card2 = card1 | Enumerator.cardMap.get(myCards[1]);
+    //                for (int c = b + 1; c < Enumerator.deckArr.length - 1; c++){
+    //                    myCards[2] = Enumerator.deckArr[c];
+    //                    card3 = card2 | Enumerator.cardMap.get(myCards[2]);
+    //                    for (int d = c + 1; d < Enumerator.deckArr.length; d++){
+    //                        myCards[3] = Enumerator.deckArr[d];
+    //                        card4 = card3 | Enumerator.cardMap.get(myCards[3]);
+    //                        double equity = getEquity(board, myCards, numSimulations);
+    //                        pr.println(card4 + " " + equity);
+    //                    }
+    //                }
+    //            }
+    //        }
+    //        pr.close();
+    //    }
 }
 
 

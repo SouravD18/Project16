@@ -10,6 +10,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import gnu.trove.map.TLongDoubleMap;
+import gnu.trove.map.hash.TLongDoubleHashMap;
+
 public final class Enumerator extends Thread {
 
     private final int	startIx;	// where to start outer loop through deck
@@ -40,7 +43,7 @@ public final class Enumerator extends Thread {
             "Ah", "As", "Ac", "Ad" 
     };
     public static final Set<String> deckSet = new HashSet<String>(Arrays.asList(deckArr));
-//    public static HashMap<Long, Double> startingHandEquityMap;
+    public static TLongDoubleMap startingHandEquityMap;
     static {
         cardMap.put("2c", 0x1L << 0);
         cardMap.put("2d", 0x1L << 16);
@@ -95,16 +98,16 @@ public final class Enumerator extends Thread {
         cardMap.put("Ah", 0x1L << 44);
         cardMap.put("As", 0x1L << 60);
 
-//        FileInputStream fis;
-//        try {
-//            fis = new FileInputStream(new File("startingMap"));
-//            ObjectInputStream ois = new ObjectInputStream(fis);
-//            startingHandEquityMap = (HashMap<Long, Double>)ois.readObject();
-//            ois.close();
-//            fis.close();
-//        } catch (ClassNotFoundException | IOException e1) {
-//            e1.printStackTrace();
-//        }
+        FileInputStream fis;
+        try {
+            fis = new FileInputStream(new File("startingMap"));
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            startingHandEquityMap = (TLongDoubleHashMap) ois.readObject();
+            ois.close();
+            fis.close();
+        } catch (ClassNotFoundException | IOException e1) {
+            e1.printStackTrace();
+        }
     }
 
     @Override public final void run() {
