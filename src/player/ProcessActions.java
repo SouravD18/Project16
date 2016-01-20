@@ -3,7 +3,8 @@ package player;
 public class ProcessActions {
     
     boolean checkPossible = false;
-    boolean betPossible = true;
+    boolean betPossible = false;
+    boolean raisePossible = false;
     // Upper range of bet
     int upperRange = 0;
     // Lower range of bet
@@ -21,6 +22,9 @@ public class ProcessActions {
      * @param legalAction: String with legal actions
      */
     public void process(String[] legalActions){
+        checkPossible = false;
+        betPossible = false;
+        raisePossible = false;
         for(String action: legalActions){
             // Checks if call or check
             if(action.split(":")[0].equals("CHECK")){
@@ -31,11 +35,13 @@ public class ProcessActions {
             }
             else if(action.split(":")[0].equals("BET")){
                 this.betPossible = true;
+                this.raisePossible = false;
                 this.lowerRange = Integer.parseInt(action.split(":")[1]);
                 this.upperRange = Integer.parseInt(action.split(":")[2]);
             }
             else if(action.split(":")[0].equals("RAISE")){
                 this.betPossible = false; 
+                this.raisePossible = true;
                 this.lowerRange = Integer.parseInt(action.split(":")[1]);
                 this.upperRange = Integer.parseInt(action.split(":")[2]);
             }
@@ -91,8 +97,11 @@ public class ProcessActions {
         if(this.betPossible){
             betOrRaise = "BET:";
         }
-        else{
+        else if(this.raisePossible){
             betOrRaise = "RAISE:";
+        }
+        else{
+            return call();
         }
         
         if(amount < this.lowerRange){

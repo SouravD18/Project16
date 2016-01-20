@@ -38,7 +38,7 @@ public class Player {
                 parsePacket(input);
                 
                 // Right Now: It's only printing game stats in dump file
-                System.out.println(input);
+                System.out.println(input.concat("\n"));
                 
                 String word = input.split(" ")[0];
                 if ("GETACTION".compareToIgnoreCase(word) == 0) {

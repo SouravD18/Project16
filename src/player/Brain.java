@@ -180,6 +180,8 @@ public class Brain {
         if (this.flopBetTurn == 1){
             String[] board = {};
             equity = Main.getEquity(board, this.holeCards, numSimulations);
+            String output = (new DumpPrinter()).print("Preflop", holeCards, board, equity);
+            System.out.println(output);
         }
         return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot);
     }
@@ -192,6 +194,8 @@ public class Brain {
             board[1] = this.boardCards.get(1);
             board[2] = this.boardCards.get(2);
             equity = Main.getEquity(board, this.holeCards, numSimulations);
+            String output = (new DumpPrinter()).print("Flop", holeCards, board, equity);
+            System.out.println(output);
         }
         return (new Flop()).takeAction(this.action, this.equity, this.currentPot);
     }    
@@ -205,6 +209,8 @@ public class Brain {
             board[2] = this.boardCards.get(2);
             board[3] = this.boardCards.get(3);
             equity = Main.getEquity(board, this.holeCards, numSimulations);
+            String output = (new DumpPrinter()).print("Turn", holeCards, board, equity);
+            System.out.println(output);
         }
         return (new Turn()).takeAction(this.action, this.equity, this.currentPot);
     }
@@ -219,7 +225,13 @@ public class Brain {
             board[3] = this.boardCards.get(3);
             board[4] = this.boardCards.get(4);
             equity = Main.getEquity(board, this.holeCards, numSimulations);
+            String output = (new DumpPrinter()).print("River", holeCards, board, equity);
+            System.out.println(output);
         }
         return (new River()).takeAction(this.action, this.equity, this.currentPot);
-    }    
+    }
+    
+    public double equity(){
+        return this.equity;
+    }
 }
