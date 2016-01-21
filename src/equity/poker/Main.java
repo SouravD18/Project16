@@ -17,21 +17,21 @@ public class Main{
     public static void main(String[] args) throws IOException {
         Enumerator.init();
         
-        for (int i = 0; i < 3000; i++){
-            String[] board = {};
-            String[] myCards = {"5s", "7c", "9h", "Jc"};
-            double result = Main.getEquity(board, myCards, 100);
-            System.out.println(result);
-        }
+//        for (int i = 0; i < 3000; i++){
+//            String[] board = {};
+//            String[] myCards = {"5s", "7c", "9h", "Jc"};
+//            double result = Main.getEquity(board, myCards, 200);
+//            System.out.println(result);
+//        }
         
-//        long startTime = System.nanoTime();
-//        String[] board = {"4c", "Kh", "8s", "4h", "3d"};
-//        String[] myCards = {"5d", "6c", "Ks", "9d"};
-//        double equity = getEquity(board, myCards, 500);
-//        long endTime = System.nanoTime();
-//        double duration = ((endTime - startTime))/1000000.0;  //divide by 1000000 to get milliseconds.
-//        System.out.println("Duration is " + duration + " milliseconds");
-//        System.out.println(equity);
+        long startTime = System.nanoTime();
+        String[] board = {"4c", "Kh", "8s"};
+        String[] myCards = {"5d", "6c", "Ks", "9d"};
+        double equity = getEquity(board, myCards, 1000);
+        long endTime = System.nanoTime();
+        double duration = ((endTime - startTime))/1000000.0;  //divide by 1000000 to get milliseconds.
+        System.out.println("Duration is " + duration + " milliseconds");
+        System.out.println(equity);
     }
 
     /**
