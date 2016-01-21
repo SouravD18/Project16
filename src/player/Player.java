@@ -191,6 +191,8 @@ public class Player {
             lastActions[j] = new Action(word[index]);
             index++;
         }
+        // Update handOver
+        this.myBrain.updateAfterHandOver(lastActions);
         
         double timeBank = Double.parseDouble(word[index]);
     }
