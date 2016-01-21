@@ -91,7 +91,7 @@ public final class HandEval {
     /**
      *  Greater than any return value of the HandEval evaluation methods.
      */
-    public static final int NO_8_LOW = STRAIGHT_FLUSH + (1 << VALUE_SHIFT);
+    private static final int NO_8_LOW = STRAIGHT_FLUSH + (1 << VALUE_SHIFT);
 
     private static final int   ARRAY_SIZE		= 0x1FC0 + 1;			// all combos of up to 7 of LS 13 bits on
     /* Arrays for which index is bit mask of card ranks in hand: */
