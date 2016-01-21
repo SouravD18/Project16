@@ -57,6 +57,12 @@ public class Brain {
     // Printer for Dump Files
     DumpPrinter printer = new DumpPrinter();
     
+    // Historian
+    Historian opponentHistorian = new Historian();
+    boolean raisedPreflop = false;
+    boolean checkedPreflop = false;
+    boolean myRaisePreflop = false;
+    
     public Brain(){    
     }
     /**
@@ -129,6 +135,10 @@ public class Brain {
         this.riverBetTurn = 0;
         
         this.myStack = 200;
+        this.raisedPreflop = false;
+        this.checkedPreflop = false;
+        this.myRaisePreflop = false;
+        this.opponentHistorian.numberOfHands += 1;
     }
     
     public void getAction(int pot, int numBoardCards, String[] board, int numLastActions,
@@ -137,6 +147,7 @@ public class Brain {
         this.previousPot = this.currentPot + 0;
         this.currentPot = pot;
         this.turnCounter = numBoardCards;
+        
         if(numBoardCards != 0){
             this.boardCards.clear();
             this.boardCards.addAll(Arrays.asList(board));
@@ -184,32 +195,98 @@ public class Brain {
     }
     
     private String preFlop(){
+        String opponentActionType = this.actions[1].actionType();
+        
+        //check whether opponent raised in preflop
+        if(opponentActionType.equals("RAISE")){
+            raisedPreflop = true;
+            if(!checkedPreflop){
+                opponentHistorian.pfr += 1;
+                checkedPreflop = true;
+            }
+        }
+        
+        String myActionType = this.actions[0].actionType();
+        myRaisePreflop = myActionType.equals("RAISE");
+        
         this.preFlopBetTurn += 1;
         if (this.preFlopBetTurn == 1){
             String[] board = {};
             equity = Main.getEquity(board, this.holeCards, numSimulations);
-            //String output = (new DumpPrinter()).print("Preflop", holeCards, board, equity);
         }
-        
+        // Update Historian
+            // For Opponent SB
+        if(!(isButton)){
+            opponentHistorian.vpip += 1;
+            
+            if(preFlopBetTurn == 1 && opponentActionType.equals("CALL")){
+                opponentHistorian.limp += 1;
+            }
+            if(preFlopBetTurn == 2){
+                opponentHistorian.fourBet += 1;
+            }
+        }
+            // For Opponent BB
+        else{
+            if(preFlopBetTurn == 2){
+                opponentHistorian.vpip += 1;
+                
+                opponentHistorian.threeBet += 1;
+                
+                if(myActionType.equals("CALL")){
+                    opponentHistorian.limpRaise += 1;                    
+                }
+            }
+        }
         return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn);
     }
 
     private String flop(){
+        String opponentActionType = this.actions[1].actionType();
+        String myActionType = this.actions[0].actionType();
+        // Adjust vpip
+        if(this.preFlopBetTurn == 1){
+            if(this.actions[0].actionType().equals("RAISE") & this.isButton){
+                this.opponentHistorian.vpip += 1;
+            }
+        }
+        
+        
         this.flopBetTurn += 1;
         if(this.flopBetTurn == 1){
+            myRaisePreflop = myActionType.equals("RAISE");
+            
             String[] board = new String[3];
             board[0] = this.boardCards.get(0);
             board[1] = this.boardCards.get(1);
             board[2] = this.boardCards.get(2);
             equity = Main.getEquity(board, this.holeCards, numSimulations);
-            //String output = (new DumpPrinter()).print("Flop", holeCards, board, equity);
-            //System.out.println(output);
         }
-        
+        // Update Historian
+            // Opponent First to act
+        if(isButton){
+            if((flopBetTurn==1 && raisedPreflop) && opponentActionType.equals("BET")){
+                opponentHistorian.continuationBet += 1;
+            }
+            else if(flopBetTurn==2 && myActionType.equals("BET")){
+                opponentHistorian.checkRaise +=1; 
+            }
+            else if(flopBetTurn==2 && myActionType.equals("RAISE")){
+                opponentHistorian.threeBet_flop += 1;
+            }
+        }
+            // Opponent Second to act
+        else{
+            if(flopBetTurn==2 && raisedPreflop){
+                opponentHistorian.continuationBet += 1;
+            }
+        }
         return (new Flop()).takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn);
     }    
   
     private String turn(){
+        String opponentAction =this.actions[1].actionType();
+        
         this.turnBetTurn += 1;
         if(this.turnBetTurn == 1){
             String[] board = new String[4];
@@ -218,14 +295,25 @@ public class Brain {
             board[2] = this.boardCards.get(2);
             board[3] = this.boardCards.get(3);
             equity = Main.getEquity(board, this.holeCards, numSimulations);
-            //String output = (new DumpPrinter()).print("Turn", holeCards, board, equity);
-            //System.out.println(output);
         }
-        
+        // Update historian
+            // Opponent first to act
+        if(this.isButton){
+            if(opponentAction.equals("BET") || opponentAction.equals("RAISE")){
+                opponentHistorian.betOrRaiseCount += 1;
+            }
+        }
+            // Opponent second to act
+        else{
+            if(this.turnBetTurn > 1){
+                opponentHistorian.betOrRaiseCount += 1;
+            }
+        }
         return (new Turn()).takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn);
     }
 
     private String river(){
+        String opponentAction = this.actions[1].actionType();
         this.riverBetTurn += 1;
         if(this.riverBetTurn == 1){
             String[] board = new String[5];
@@ -235,14 +323,74 @@ public class Brain {
             board[3] = this.boardCards.get(3);
             board[4] = this.boardCards.get(4);
             equity = Main.getEquity(board, this.holeCards, numSimulations);
-            //String output = (new DumpPrinter()).print("River", holeCards, board, equity);
-            //System.out.println(output);
         }
-        
+         // Update historian
+            // Opponent first to act
+        if(this.isButton){
+            if(riverBetTurn == 1){
+                boolean called = this.actions[0].actionType().equals("BET") ||
+                                this.actions[0].actionType().equals("RAISE");
+                if(called){
+                    opponentHistorian.callCount += 1;
+                }
+            }
+            if(opponentAction.equals("BET") || opponentAction.equals("RAISE")){
+                opponentHistorian.betOrRaiseCount += 1;
+            }
+
+        }
+            // Opponent second to act
+        else{
+            if(this.riverBetTurn == 1){
+                boolean called = this.actions[0].actionType().equals("BET") ||
+                        this.actions[0].actionType().equals("RAISE");
+                if(called){
+                    opponentHistorian.callCount += 1;
+                }
+            }
+            else{
+                opponentHistorian.betOrRaiseCount += 1;
+            }
+        }
         return (new River()).takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn);
     }
     
     public double equity(){
         return this.equity;
+    }
+    
+    public void updateAfterHandOver(Action[] givenActions){
+        int size = givenActions.length;
+        
+        if(givenActions[size - 1].actor().equals(this.Names[1])){
+            opponentHistorian.winCount += 1;
+            if(givenActions[size - 2].actionType().equals("SHOW")){
+                opponentHistorian.winSD_post += 1;
+            }
+        }
+        
+        if(givenActions[size - 2].actionType().equals("SHOW")){
+            opponentHistorian.wentSD_post += 1;
+        }
+        
+        if(givenActions[1].actionType().equals("FOLD")){
+            opponentHistorian.foldCount += 1;
+        }
+        
+        if(givenActions[0].actionType().equals("BET") || 
+                    givenActions[0].actionType().equals("RAISE")){
+            if((this.turnCounter == 0 && this.preFlopBetTurn == 2) && this.isButton){
+                opponentHistorian.foldToFourBet += 1;
+            }
+            if((this.turnCounter == 3 && this.flopBetTurn == 1 && myRaisePreflop)){
+                if(givenActions[1].actionType().equals("FOLD")){
+                    opponentHistorian.foldToContinuation_flop += 1;
+                }
+            }
+            if(this.turnCounter > 3 && givenActions[1].actionType().equals("CALL")){
+                opponentHistorian.callCount += 1;
+            }
+        }
+        this.opponentHistorian.printAll();
     }
 }
