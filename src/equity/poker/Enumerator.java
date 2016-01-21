@@ -1,13 +1,13 @@
 package equity.poker;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import gnu.trove.map.TLongDoubleMap;
@@ -30,7 +30,8 @@ public final class Enumerator extends Thread {
     public long         wins = 0L;
     public long         splits = 0L;
     public long         losses = 0L;
-
+    
+    private final Random r = new Random();
     public final boolean isSimulation;
     public final int numSimulations;
     public static final Map<String, Long> cardMap = new HashMap<>();
@@ -45,6 +46,13 @@ public final class Enumerator extends Thread {
     public static final Set<String> deckSet = new HashSet<String>(Arrays.asList(deckArr));
     public static TLongDoubleMap startingHandEquityMap;
     static {
+        init();
+    }
+    
+    /**
+     * Initializes the cardMap and the preFlopMap
+     */
+    public static void init(){
         cardMap.put("2c", 0x1L << 0);
         cardMap.put("2d", 0x1L << 16);
         cardMap.put("2h", 0x1L << 32);
@@ -125,7 +133,7 @@ public final class Enumerator extends Thread {
      * @param board Can contain either 0 cards, 3, 4, or 5 cards
      * @param numSimulations If equal to 0, it enums every possibility, else sets # of simulations per core
      */
-    public Enumerator(final int instance, final int instances, final String[] myCards, final String[] board, int numSimulations) {
+    public Enumerator(final int instance, final int instances, final String[] myCards, final String[] board, final int numSimulations) {
         super("Enumerator" + instance);
         startIx = instance;
         increment = instances;
@@ -163,75 +171,6 @@ public final class Enumerator extends Thread {
         limitIx3 = nCardsInDeck - 3;
         limitIx4 = nCardsInDeck - 2;
         limitIx5 = nCardsInDeck - 1;
-    }
-    
-    /**
-     * Constructor only to be used when starting up the bot
-     * So that all objects can be loaded onto memory without
-     * Counting against the time limit
-     */
-    public Enumerator(){
-        startIx = 0;
-        nBoardCards = 0;
-        deck = null;
-        dealt = null;
-        limitIx1 = 0;
-        limitIx2 = 0;
-        limitIx3 = 0;
-        limitIx4 = 0;
-        limitIx5 = 0;
-        board = null;
-        myCards = null;
-        opponentCards = null;
-        myHandValue = 0;
-        opponentHandValue = 0;
-        increment = 0;
-        isSimulation = false;
-        numSimulations = 0;
-    }
-
-    /**
-     * Called whenever both you and your opponent's hands are known
-     * And you're iterating through all the possible boards
-     */
-    private void enumAllDecksWithKnownHands() {
-        int handValue0, handValue1;
-        for (int deckIx1 = startIx; deckIx1 <= limitIx1; deckIx1 += increment) {
-            board[0] = deck[deckIx1];
-            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx2; ++deckIx2) {
-                board[1] = deck[deckIx2];
-                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
-                    board[2] = deck[deckIx3];
-                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                        board[3] = deck[deckIx4];
-                        for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
-                            board[4] = deck[deckIx5];
-                            handValue0 = HandEval.OmahaHighEval(board, myCards);
-                            handValue1 = HandEval.OmahaHighEval(board, opponentCards);
-                            if (handValue0 > handValue1)
-                                wins++;
-                            else if (handValue0 == handValue1)
-                                splits++;
-                            else losses++;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Precondition: You must have called OmahaHighEval on your own cards by then
-     * Compares your hand value against the opponent's (with the board cards) and 
-     * records the stats
-     */
-    private void potResults() {
-        opponentHandValue = HandEval.OmahaHighEval(board, opponentCards);
-        if (myHandValue > opponentHandValue)
-            wins++;
-        else if (myHandValue == opponentHandValue)
-            splits++;
-        else losses++;
     }
 
     /**
@@ -359,204 +298,140 @@ public final class Enumerator extends Thread {
      * Use this method to run simulations
      */
     private void simulateBoardsAndHands(){
-        int deckIx1, deckIx2, deckIx3, deckIx4, deckIx5, card1, card2, card3, card4;
+        int[] array;
         switch (nBoardCards){
         case 0:
+            array = new int[deck.length];
+            for (int j = 0; j < array.length; j++){
+                array[j] = j;
+            }
             for (int i = 0; i < numSimulations; i++){
-                deckIx1 = getRandomNumberPre();
-                dealt[deckIx1] = true;
-                deckIx2 = getRandomNumberPre();
-                while (dealt[deckIx2])
-                    deckIx2 = getRandomNumberPre();
-                dealt[deckIx2] = true;
-                deckIx3 = getRandomNumberPre();
-                while (dealt[deckIx3])
-                    deckIx3 = getRandomNumberPre();
-                dealt[deckIx3] = true;
-                deckIx4 = getRandomNumberPre();
-                while (dealt[deckIx4])
-                    deckIx4 = getRandomNumberPre();
-                dealt[deckIx4] = true;
-                deckIx5 = getRandomNumberPre();
-                while (dealt[deckIx5])
-                    deckIx5 = getRandomNumberPre();
-                dealt[deckIx5] = true;
-                card1 = getRandomNumberPre();
-                while (dealt[card1])
-                    card1 = getRandomNumberPre();
-                dealt[card1] = true;
-                card2 = getRandomNumberPre();
-                while (dealt[card2])
-                    card2 = getRandomNumberPre();
-                dealt[card2] = true;
-                card3 = getRandomNumberPre();
-                while (dealt[card3])
-                    card3 = getRandomNumberPre();
-                dealt[card3] = true;
-                card4 = getRandomNumberPre();
-                while (dealt[card4])
-                    card4 = getRandomNumberPre();
-                board[0] = deck[deckIx1];
-                board[1] = deck[deckIx2];
-                board[2] = deck[deckIx3];
-                board[3] = deck[deckIx4];
-                board[4] = deck[deckIx5];
-                opponentCards[0] = deck[card1];
-                opponentCards[1] = deck[card2];
-                opponentCards[2] = deck[card3];
-                opponentCards[3] = deck[card4];
+                shuffleArray(array);
+                board[0] = deck[array[0]];
+                board[1] = deck[array[1]];
+                board[2] = deck[array[2]];
+                board[3] = deck[array[3]];
+                board[4] = deck[array[4]];
+                opponentCards[0] = deck[array[5]];
+                opponentCards[1] = deck[array[6]];
+                opponentCards[2] = deck[array[7]];
+                opponentCards[3] = deck[array[8]];
                 myHandValue = HandEval.OmahaHighEval(board, myCards);
                 potResults();
-
-                dealt[deckIx1] = false;
-                dealt[deckIx2] = false;
-                dealt[deckIx3] = false;
-                dealt[deckIx4] = false;
-                dealt[deckIx5] = false;
-                dealt[card1] = false;
-                dealt[card2] = false;
-                dealt[card3] = false;
-                dealt[card4] = false;
             }
             break;
         case 3:
+            array = new int[deck.length];
+            for (int j = 0; j < array.length; j++){
+                array[j] = j;
+            }
             for (int i = 0; i < numSimulations; i++){
-                deckIx4 = getRandomNumberFlop();
-                dealt[deckIx4] = true;
-                deckIx5 = getRandomNumberFlop();
-                while (dealt[deckIx5])
-                    deckIx5 = getRandomNumberFlop();
-                dealt[deckIx5] = true;
-                card1 = getRandomNumberFlop();
-                while (dealt[card1])
-                    card1 = getRandomNumberFlop();
-                dealt[card1] = true;
-                card2 = getRandomNumberFlop();
-                while (dealt[card2])
-                    card2 = getRandomNumberFlop();
-                dealt[card2] = true;
-                card3 = getRandomNumberFlop();
-                while (dealt[card3])
-                    card3 = getRandomNumberFlop();
-                dealt[card3] = true;
-                card4 = getRandomNumberFlop();
-                while (dealt[card4])
-                    card4 = getRandomNumberFlop();
-                board[3] = deck[deckIx4];
-                board[4] = deck[deckIx5];
-                opponentCards[0] = deck[card1];
-                opponentCards[1] = deck[card2];
-                opponentCards[2] = deck[card3];
-                opponentCards[3] = deck[card4];
+                shuffleArray(array);
+                board[3] = deck[array[0]];
+                board[4] = deck[array[1]];
+                opponentCards[0] = deck[array[2]];
+                opponentCards[1] = deck[array[3]];
+                opponentCards[2] = deck[array[4]];
+                opponentCards[3] = deck[array[5]];
                 myHandValue = HandEval.OmahaHighEval(board, myCards);
                 potResults();
-
-                dealt[deckIx4] = false;
-                dealt[deckIx5] = false;
-                dealt[card1] = false;
-                dealt[card2] = false;
-                dealt[card3] = false;
-                dealt[card4] = false;
             }
             break;
         case 4:
+            array = new int[deck.length];
+            for (int j = 0; j < array.length; j++){
+                array[j] = j;
+            }
             for (int i = 0; i < numSimulations; i++){
-                deckIx5 = getRandomNumberTurn();
-                dealt[deckIx5] = true;
-                card1 = getRandomNumberTurn();
-                while (dealt[card1])
-                    card1 = getRandomNumberTurn();
-                dealt[card1] = true;
-                card2 = getRandomNumberTurn();
-                while (dealt[card2])
-                    card2 = getRandomNumberTurn();
-                dealt[card2] = true;
-                card3 = getRandomNumberTurn();
-                while (dealt[card3])
-                    card3 = getRandomNumberTurn();
-                dealt[card3] = true;
-                card4 = getRandomNumberTurn();
-                while (dealt[card4])
-                    card4 = getRandomNumberTurn();
-                board[4] = deck[deckIx5];
-                opponentCards[0] = deck[card1];
-                opponentCards[1] = deck[card2];
-                opponentCards[2] = deck[card3];
-                opponentCards[3] = deck[card4];
+                shuffleArray(array);
+                board[4] = deck[array[0]];
+                opponentCards[0] = deck[array[1]];
+                opponentCards[1] = deck[array[2]];
+                opponentCards[2] = deck[array[3]];
+                opponentCards[3] = deck[array[4]];
                 myHandValue = HandEval.OmahaHighEval(board, myCards);
                 potResults();
-
-                dealt[deckIx5] = false;
-                dealt[card1] = false;
-                dealt[card2] = false;
-                dealt[card3] = false;
-                dealt[card4] = false;
             }
             break;
         case 5:
-            for (int i = 0; i < numSimulations; i++){
-                card1 = getRandomNumberRiver();
-                while (dealt[card1])
-                    card1 = getRandomNumberRiver();
-                dealt[card1] = true;
-                card2 = getRandomNumberRiver();
-                while (dealt[card2])
-                    card2 = getRandomNumberRiver();
-                dealt[card2] = true;
-                card3 = getRandomNumberRiver();
-                while (dealt[card3])
-                    card3 = getRandomNumberRiver();
-                dealt[card3] = true;
-                card4 = getRandomNumberRiver();
-                while (dealt[card4])
-                    card4 = getRandomNumberRiver();
-                opponentCards[0] = deck[card1];
-                opponentCards[1] = deck[card2];
-                opponentCards[2] = deck[card3];
-                opponentCards[3] = deck[card4];
-                myHandValue = HandEval.OmahaHighEval(board, myCards);
-                potResults();
-
-                dealt[card1] = false;
-                dealt[card2] = false;
-                dealt[card3] = false;
-                dealt[card4] = false;
+            array = new int[deck.length];
+            myHandValue = HandEval.OmahaHighEval(board, myCards); 
+            //board is pre-determined so we know our hand-value beforehand
+            for (int j = 0; j < array.length; j++){
+                array[j] = j;
             }
-            break;
+            for (int i = 0; i < numSimulations; i++){
+                shuffleArray(array);
+                opponentCards[0] = deck[array[0]];
+                opponentCards[1] = deck[array[1]];
+                opponentCards[2] = deck[array[2]];
+                opponentCards[3] = deck[array[3]];
+                potResults();
+            }
         default:
             break;
         }
     }
-
-    private int getRandomNumberPre(){
-        long x = System.nanoTime();
-        x ^= (x << 21);
-        x ^= (x >>> 35);
-        x ^= (x << 4);
-        return (int) Math.floorMod(x, 48);
+    
+    /**
+     * Precondition: You must have called OmahaHighEval on your own cards by then
+     * Compares your hand value against the opponent's (with the board cards) and 
+     * records the stats
+     */
+    private void potResults() {
+        opponentHandValue = HandEval.OmahaHighEval(board, opponentCards);
+        if (myHandValue > opponentHandValue)
+            wins++;
+        else if (myHandValue == opponentHandValue)
+            splits++;
+        else losses++;
     }
-
-    private int getRandomNumberFlop(){
-        long x = System.nanoTime();
-        x ^= (x << 21);
-        x ^= (x >>> 35);
-        x ^= (x << 4);
-        return (int) Math.floorMod(x, 45);
+    
+    /**
+     * Called whenever both you and your opponent's hands are known
+     * And you're iterating through all the possible boards
+     */
+    private void enumAllDecksWithKnownHands() {
+        int handValue0, handValue1;
+        for (int deckIx1 = startIx; deckIx1 <= limitIx1; deckIx1 += increment) {
+            board[0] = deck[deckIx1];
+            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx2; ++deckIx2) {
+                board[1] = deck[deckIx2];
+                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
+                    board[2] = deck[deckIx3];
+                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
+                        board[3] = deck[deckIx4];
+                        for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
+                            board[4] = deck[deckIx5];
+                            handValue0 = HandEval.OmahaHighEval(board, myCards);
+                            handValue1 = HandEval.OmahaHighEval(board, opponentCards);
+                            if (handValue0 > handValue1)
+                                wins++;
+                            else if (handValue0 == handValue1)
+                                splits++;
+                            else losses++;
+                        }
+                    }
+                }
+            }
+        }
     }
-
-    private int getRandomNumberTurn(){
-        long x = System.nanoTime();
-        x ^= (x << 21);
-        x ^= (x >>> 35);
-        x ^= (x << 4);
-        return (int) Math.floorMod(x, 44);
-    }
-
-    private int getRandomNumberRiver(){
-        long x = System.nanoTime();
-        x ^= (x << 21);
-        x ^= (x >>> 35);
-        x ^= (x << 4);
-        return (int) Math.floorMod(x, 43);
+    
+    /**
+     * Shuffles the array using the Fisher-Yates method
+     * @param array The input array to be shuffled
+     */
+    public void shuffleArray(int[] array){
+        int index;
+        for (int i = array.length - 1; i > 0; i--)
+        {
+            index = r.nextInt(i + 1);
+            if (index != i)
+            {
+                array[index] ^= array[i];
+                array[i] ^= array[index];
+                array[index] ^= array[i];
+            }
+        }
     }
 }
