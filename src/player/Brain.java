@@ -21,7 +21,7 @@ public class Brain {
     int handsRemaining = 0;
     double timePerHandLeft = 0.1;
     
-    public int numSimulations = 500;
+    public int numSimulations = 800;
     
     String[] holeCards = new String[4];
     List<String> boardCards = new ArrayList<String>();
@@ -109,14 +109,13 @@ public class Brain {
         
         timePerHandLeft = timeBank / handsRemaining;
         if (timePerHandLeft < 0.085)
-            numSimulations = 200;
-        else if (timePerHandLeft < 0.095)
             numSimulations = 400;
-        else if (timePerHandLeft < 0.105)
-            numSimulations = 500;
-        else if (timePerHandLeft < 0.115)
+        else if (timePerHandLeft < 0.095)
             numSimulations = 600;
-        else numSimulations = 800;
+        else if (timePerHandLeft < 0.105)
+            numSimulations = 800;
+        else
+            numSimulations = 1000;
         
         // Reset some stuff:
         this.turnCounter = 0;
