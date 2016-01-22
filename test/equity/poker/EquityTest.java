@@ -7,6 +7,9 @@ public class EquityTest {
     public static final double delta = 0.01;
     public static final double strictDelta = 0.005;
     public static final int numSimulations = 2000;
+    static {
+        Enumerator.init();
+    }
     
     @Test
     public void testPreFlopEquity(){
