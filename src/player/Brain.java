@@ -238,7 +238,10 @@ public class Brain {
                 }
             }
         }
-        return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn);
+        return (new PreFlop()).testAction(this.isButton, this.preFlopBetTurn,
+                equity, this.currentPot, this.action, this.opponentHistorian);
+        
+        //return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn);
     }
 
     private String flop(){

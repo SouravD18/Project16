@@ -32,6 +32,8 @@ public class Historian {
     int winCount = 0;
     int foldCount = 0;
     
+    int my4bet = 0;
+    
     public void Historian(){
     }
     
