@@ -54,7 +54,7 @@ public class Main {
 	public static void main(String[] args) {
 		try {
 		    Enumerator.init();
-		    
+		    System.out.println(Runtime.getRuntime().availableProcessors() + " is the number of cores");
 			// Socket which will connect to the engine.
 			Socket socket = parseArgsToSocket(args);
 			if (socket == null) {

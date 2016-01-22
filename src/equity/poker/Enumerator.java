@@ -32,8 +32,8 @@ public final class Enumerator extends Thread {
     public long         losses = 0L;
     
     private final Random r = new Random();
-    public final boolean isSimulation;
-    public final int numSimulations;
+    private final boolean isSimulation;
+    private final int numSimulations;
     public static final Map<String, Long> cardMap = new HashMap<>();
     public static final String[] deckArr = { 
             "2h", "2s", "2c", "2d",
@@ -421,7 +421,7 @@ public final class Enumerator extends Thread {
      * Shuffles the array using the Fisher-Yates method
      * @param array The input array to be shuffled
      */
-    public void shuffleArray(int[] array){
+    private void shuffleArray(int[] array){
         int index;
         for (int i = array.length - 1; i > 0; i--)
         {
