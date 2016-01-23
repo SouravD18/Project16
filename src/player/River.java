@@ -20,7 +20,7 @@ public class River {
         
         if(equity >= reallyGoodEquity){
             // Raise Maximum.
-            return action.bet(200);
+            return action.bet(10000);
         }
         else if(equity >= goodEquity){
             // Bet according to EV
@@ -93,7 +93,9 @@ public class River {
         if(equity >= goodEquity){
             betExtraEquity = (Constants.equityBarWentSD) * (differenceSDWent) / (Constants.wentSDVariance);
         }
-        betExtraEquity  = betExtraEquity + callExtraEquity;
+        // Extra opponent Fold Equity: 
+        double opponentFoldEquity = mister.foldPercentInPost() * Constants.predictFold;
+        betExtraEquity  = betExtraEquity + callExtraEquity +opponentFoldEquity;
         
         // Determining Fold Extra Equity
         foldExtraEquity = (Constants.equityBarWentSD) * (differenceSDWent) / (Constants.wentSDVariance)
@@ -111,11 +113,11 @@ public class River {
         
         double evForBet = (potSize + averageBet) * (adjustedEquity + betExtraEquity)
                         - (averageBet + action.callAmount()) * (1 - adjustedEquity - betExtraEquity);
-        System.out.println(equity);
-        System.out.println(adjustedEquity);
-        System.out.println(evForBet);
-        System.out.println(evForCall);
-        System.out.println(evForFold);
+        System.out.println("eq: "+equity);
+        System.out.println("After adjusting: "+adjustedEquity);
+        System.out.println("evForBest: "+evForBet);
+        System.out.println("evForCall: "+evForCall);
+        System.out.println("evForFold: "+evForFold);
         
         // Now check ev and call/ bet / fold accordingly:
         if(evForBet > evForCall && evForBet > evForFold){

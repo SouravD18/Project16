@@ -32,10 +32,30 @@ public class Historian {
     int winCount = 0;
     int foldCount = 0;
     
+    int foldInPost = 0;
+    int wentToPost = 0;
+    
     int my4bet = 0;
     
-    public void Historian(){
-    }
+    // Went to stages:
+    int wentToFlop = 0;
+    int wentToTurn = 0;
+    int wentToRiver = 0;
+    
+    // First Betting:
+    int flopBet = 0;
+    int turnBet = 0;
+    int riverBet = 0;
+    
+    // Folding:
+    int foldFlop = 0;
+    int foldTurn = 0;
+    int foldRiver = 0;
+    
+    // Check-Raise:
+    int checkRaiseFlop = 0;
+    int checkRaiseTurn = 0;
+    int checkRaiseRiver = 0;
     
     public void printAll(){
         System.out.println("vpip: "+vpip);
@@ -68,7 +88,18 @@ public class Historian {
         System.out.println("aggessionFactor: "+aggressionFactor());
         System.out.println("Win ShowDown: "+sdWinPercent());
         System.out.println("Went ShowDown: "+sdWentPercent());
+
+        System.out.println("Flop bet freq.: "+flopBettingFrequencies());
+        System.out.println("Flop CheckRaiseFreq.: "+flopCheckRaiseFrequencies());
+        System.out.println("Flop_Flod: "+flopFoldingFrequencies());
         
+        System.out.println("Turn bet: "+turnBettingFrequencies());
+        System.out.println("Turn check raise: "+turnCheckRaiseFrequencies());
+        System.out.println("Turn fold: "+turnFoldingFrequencies());
+        
+        System.out.println("River bet: "+riverBettingFrequencies());
+        System.out.println("River check raise: "+riverCheckRaiseFrequencies());
+        System.out.println("River fold: "+riverFoldingFrequencies());
     }
     /**
      *  (number of three bet) / (number of BB)
@@ -163,6 +194,85 @@ public class Historian {
         double answer = 0.0;
         if(vpip > 0){
             answer = ((double) wentSD_post) / vpip;
+        }
+        return answer;
+    }
+    
+    public double foldPercentInPost(){
+        double answer = 0.0;
+        if(wentToPost > 0){
+            answer = ((double) foldInPost) / wentToPost;
+        }
+        return answer;
+    }
+    public double flopBettingFrequencies(){
+        double answer = 0.0;
+        if(wentToFlop > 0){
+            answer = ((double) flopBet) / wentToFlop;
+        }
+        return answer;
+    }
+    
+    public double flopCheckRaiseFrequencies(){
+        double answer = 0.0;
+        if(wentToFlop > 0){
+            answer = ((double) checkRaiseFlop) / wentToFlop;
+        }
+        return answer;
+    }
+    
+    public double flopFoldingFrequencies(){
+        double answer = 0.0;
+        if(wentToFlop > 0){
+            answer = ((double) foldFlop) / wentToFlop;
+        }
+        return answer;
+    }
+    
+    public double turnBettingFrequencies(){
+        double answer = 0.0;
+        if(wentToTurn > 0){
+            answer = ((double) turnBet) / wentToTurn;
+        }
+        return answer;
+    }
+    
+    public double turnCheckRaiseFrequencies(){
+        double answer = 0.0;
+        if(wentToTurn > 0){
+            answer = ((double) checkRaiseTurn) / wentToTurn;
+        }
+        return answer;
+    }
+    
+    public double turnFoldingFrequencies(){
+        double answer = 0.0;
+        if(wentToTurn > 0){
+            answer = ((double) foldTurn) / wentToTurn;
+        }
+        return answer;
+    }
+    
+    public double riverBettingFrequencies(){
+        double answer = 0.0;
+        if(wentToRiver > 0){
+            answer = ((double) riverBet) / wentToRiver;
+        }
+        return answer;
+    }
+    
+    public double riverCheckRaiseFrequencies(){
+        double answer = 0.0;
+        if(wentToRiver > 0){
+            answer = ((double) checkRaiseRiver) / wentToRiver;
+        }
+        return answer;
+    }
+    
+    public double riverFoldingFrequencies(){
+        double answer = 0.0;
+        if(wentToRiver > 0){
+            answer = ((double) foldRiver) / wentToRiver;
         }
         return answer;
     }

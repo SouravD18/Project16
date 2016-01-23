@@ -255,6 +255,8 @@ public class Brain {
         
         this.flopBetTurn += 1;
         if(this.flopBetTurn == 1){
+            opponentHistorian.wentToFlop += 1;
+            
             myRaisePreflop = myActionType.equals("RAISE");
             
             String[] board = new String[3];
@@ -266,11 +268,15 @@ public class Brain {
         // Update Historian
             // Opponent First to act
         if(isButton){
+            if(flopBetTurn==1 && opponentActionType.equals("BET")){
+                opponentHistorian.flopBet +=1;
+            }
             if((flopBetTurn==1 && raisedPreflop) && opponentActionType.equals("BET")){
                 opponentHistorian.continuationBet += 1;
             }
             else if(flopBetTurn==2 && myActionType.equals("BET")){
                 opponentHistorian.checkRaise +=1; 
+                opponentHistorian.checkRaiseFlop +=1;
             }
             else if(flopBetTurn==2 && myActionType.equals("RAISE")){
                 opponentHistorian.threeBet_flop += 1;
@@ -278,6 +284,9 @@ public class Brain {
         }
             // Opponent Second to act
         else{
+            if(flopBetTurn==2 && opponentActionType.equals("BET")){
+                opponentHistorian.flopBet +=1;
+            }
             if(flopBetTurn==2 && raisedPreflop){
                 opponentHistorian.continuationBet += 1;
             }
@@ -287,9 +296,12 @@ public class Brain {
   
     private String turn(){
         String opponentAction =this.actions[1].actionType();
+        String myActionType = this.actions[0].actionType();
         
         this.turnBetTurn += 1;
         if(this.turnBetTurn == 1){
+            opponentHistorian.wentToTurn += 1;
+
             String[] board = new String[4];
             board[0] = this.boardCards.get(0);
             board[1] = this.boardCards.get(1);
@@ -300,8 +312,14 @@ public class Brain {
         // Update historian
             // Opponent first to act
         if(this.isButton){
+            if(turnBetTurn==1 && opponentAction.equals("BET")){
+                opponentHistorian.turnBet +=1;
+            }
             if(opponentAction.equals("BET") || opponentAction.equals("RAISE")){
                 opponentHistorian.betOrRaiseCount += 1;
+            }
+            if(turnBetTurn==2 && myActionType.equals("BET")){
+                opponentHistorian.checkRaiseTurn +=1;
             }
         }
             // Opponent second to act
@@ -309,16 +327,23 @@ public class Brain {
             if(this.turnBetTurn > 1){
                 opponentHistorian.betOrRaiseCount += 1;
             }
+            if(turnBetTurn==2 && opponentAction.equals("BET")){
+                opponentHistorian.turnBet +=1;
+            }
         }
-        return (new Turn().testAction(this.action, this.equity, 
-                this.currentPot, this.turnBetTurn, this.opponentHistorian));
-        //return (new Turn()).takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn);
+        //return (new Turn().testAction(this.action, this.equity, 
+        //        this.currentPot, this.turnBetTurn, this.opponentHistorian, this.isButton));
+        return (new Turn()).takeAction(this.action, this.equity, this.currentPot, 
+                this.turnBetTurn, this.opponentHistorian, this.isButton);
     }
 
     private String river(){
         String opponentAction = this.actions[1].actionType();
+        String myActionType = this.actions[0].actionType();
         this.riverBetTurn += 1;
         if(this.riverBetTurn == 1){
+            opponentHistorian.wentToRiver += 1;
+
             String[] board = new String[5];
             board[0] = this.boardCards.get(0);
             board[1] = this.boardCards.get(1);
@@ -330,21 +355,34 @@ public class Brain {
          // Update historian
             // Opponent first to act
         if(this.isButton){
+            if(riverBetTurn==1 && opponentAction.equals("BET")){
+                opponentHistorian.riverBet +=1;
+            }
+            
             if(riverBetTurn == 1){
+
                 boolean called = this.actions[0].actionType().equals("BET") ||
                                 this.actions[0].actionType().equals("RAISE");
                 if(called){
                     opponentHistorian.callCount += 1;
                 }
             }
+            
             if(opponentAction.equals("BET") || opponentAction.equals("RAISE")){
                 opponentHistorian.betOrRaiseCount += 1;
             }
-
+            
+            if(riverBetTurn==2 && myActionType.equals("BET")){
+                opponentHistorian.checkRaiseRiver +=1;
+            }
         }
             // Opponent second to act
         else{
+            if(turnBetTurn==2 && opponentAction.equals("BET")){
+                opponentHistorian.turnBet +=1;
+            }
             if(this.riverBetTurn == 1){
+            
                 boolean called = this.actions[0].actionType().equals("BET") ||
                         this.actions[0].actionType().equals("RAISE");
                 if(called){
@@ -380,6 +418,19 @@ public class Brain {
         
         if(givenActions[1].actionType().equals("FOLD")){
             opponentHistorian.foldCount += 1;
+            if(this.turnCounter > 3){
+                opponentHistorian.foldInPost += 1;
+                opponentHistorian.wentToPost += 1;
+            }
+            if(this.turnCounter == 3){
+                opponentHistorian.foldFlop +=1;
+            }
+            else if(this.turnCounter == 4){
+                opponentHistorian.foldTurn += 1;
+            }
+            else if(this.turnCounter == 5){
+                opponentHistorian.foldRiver += 1;
+            }
         }
         
         if(givenActions[0].actionType().equals("BET") || 
@@ -396,6 +447,8 @@ public class Brain {
                 opponentHistorian.callCount += 1;
             }
         }
-        //this.opponentHistorian.printAll();
+        
+        this.opponentHistorian.printAll();
+        
     }
 }
