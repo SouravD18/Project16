@@ -133,18 +133,18 @@ public class ProcessActions {
         else{
             return call();
         }
-        
-        if(amount < this.lowerRange){
+        int actualAmount = amount + callAmount();
+        if( actualAmount < this.lowerRange){
             this.moneyGiven = this.lowerRange + 0;
             return betOrRaise.concat(Integer.toString(this.lowerRange));
         }
-        else if(amount > this.upperRange){
+        else if(actualAmount > this.upperRange){
             this.moneyGiven = this.upperRange + 0;
             return betOrRaise.concat(Integer.toString(this.upperRange));
         }
         else{
-            this.moneyGiven = amount + 0;
-            return betOrRaise.concat(Integer.toString(amount));
+            this.moneyGiven = actualAmount + 0;
+            return betOrRaise.concat(Integer.toString(actualAmount));
         }
     }
     /**
@@ -156,9 +156,19 @@ public class ProcessActions {
             return 0;
         }
         else{
-            // RN, I am assuming this will be the call size
             return (this.opponentMoney - this.moneyGiven);
         }
     }
-
+    
+    public boolean isBet(){
+        return this.betPossible;
+    }
+    
+    public int minBet(){
+        return this.lowerRange - this.opponentMoney;
+    }
+    
+    public int maxBet(){
+        return this.upperRange - this.opponentMoney;
+    }
 }

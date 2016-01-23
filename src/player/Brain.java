@@ -236,10 +236,10 @@ public class Brain {
                 }
             }
         }
-        return (new PreFlop()).testAction(this.isButton, this.preFlopBetTurn,
-                equity, this.currentPot, this.action, this.opponentHistorian);
+        //return (new PreFlop()).testAction(this.isButton, this.preFlopBetTurn,
+        //        equity, this.currentPot, this.action, this.opponentHistorian);
         
-        //return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn);
+        return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn);
     }
 
     private String flop(){
@@ -310,7 +310,9 @@ public class Brain {
                 opponentHistorian.betOrRaiseCount += 1;
             }
         }
-        return (new Turn()).takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn);
+        return (new Turn().testAction(this.action, this.equity, 
+                this.currentPot, this.turnBetTurn, this.opponentHistorian));
+        //return (new Turn()).takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn);
     }
 
     private String river(){
@@ -353,7 +355,9 @@ public class Brain {
                 opponentHistorian.betOrRaiseCount += 1;
             }
         }
-        return (new River()).takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn);
+        return (new River().testAction(this.action, this.equity, 
+                this.currentPot, this.riverBetTurn, this.opponentHistorian));
+        //return (new River()).takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn);
     }
     
     public double equity(){
@@ -392,6 +396,6 @@ public class Brain {
                 opponentHistorian.callCount += 1;
             }
         }
-        this.opponentHistorian.printAll();
+        //this.opponentHistorian.printAll();
     }
 }

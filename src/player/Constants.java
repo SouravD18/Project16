@@ -26,4 +26,19 @@ public class Constants {
     public static double riverGood = .65;
     public static double riverAverage = .55;
     
+    // Post Flop constants
+    public static double standardAggrFactor = 3;
+    public static double aggrVariance = 3;
+    public static double equityBarAggr = .1;
+    
+    public static double standardWentSD = .4;
+    public static double wentSDVariance = .4;
+    public static double equityBarWentSD = .1;
+    
+    public static double standardWinSD = .5;
+    public static double winSDVariance = .3;
+    public static double equityBarWinSD = .1;
+    
+    public static double adjustEquity = .1;
+    
 }
