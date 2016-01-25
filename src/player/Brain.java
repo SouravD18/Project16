@@ -239,7 +239,7 @@ public class Brain {
         //return (new PreFlop()).testAction(this.isButton, this.preFlopBetTurn,
         //        equity, this.currentPot, this.action, this.opponentHistorian);
         
-        return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn);
+        return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn, this.isButton);
     }
 
     private String flop(){
@@ -291,7 +291,7 @@ public class Brain {
                 opponentHistorian.continuationBet += 1;
             }
         }
-        return (new Flop()).takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn);
+        return (new Flop()).takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton);
     }    
   
     private String turn(){
@@ -393,9 +393,9 @@ public class Brain {
                 opponentHistorian.betOrRaiseCount += 1;
             }
         }
-        return (new River().testAction(this.action, this.equity, 
-                this.currentPot, this.riverBetTurn, this.opponentHistorian));
-        //return (new River()).takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn);
+        //return (new River().testAction(this.action, this.equity, 
+        //        this.currentPot, this.riverBetTurn, this.opponentHistorian));
+        return (new River()).takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn, this.isButton);
     }
     
     public double equity(){

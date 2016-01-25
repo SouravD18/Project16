@@ -15,39 +15,16 @@ public class Turn {
  
     public String takeAction(ProcessActions action, double equity, int potSize, int turn, 
             Historian mister, boolean isButton){
-        
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         
-        double excessFirstAggr = (mister.turnBettingFrequencies() - Constants.avgFirstAggr) *
-                            Constants.aggrScale;
-        double excessCheckRaising = (mister.turnCheckRaiseFrequencies() - Constants.avgCheckRaising) *
-                            Constants.checkRaiseScale;
-        double excessFolding = (mister.turnFoldingFrequencies() - Constants.avgFolding) *
-                            Constants.foldingScale;
-        
         if(equity >= reallyGoodEquity){
-            
-            if(excessFolding > 0 && excessCheckRaising < 0 && !isButton && turn == 1) {
-                return action.call();
-            }
-            else if(excessFolding > 0.2 && turn == 1){
-                if(action.betPossible){
-                    return action.bet( action.minBet() + (int)excessFolding * 8);
-                }
-                else{
-                    return action.bet((int) evForCall);
-                }
-            }
-            if(turn == 1){
-                return action.bet((int) evForCall);
-            }
-            return action.bet(10000000);
+            // Raise Maximum.
+            return action.bet(200000);
         }
         else if(equity >= goodEquity){
-            if(excessFolding > 0 && excessCheckRaising < 0 && !isButton && turn == 1) {
-                return action.call();
-            }
+            // Bet according to EV
+            // For safety: No 2nd-bet
             if(turn < 2){
                 return action.bet(callAmount + (int) evForCall);
             }
@@ -56,33 +33,12 @@ public class Turn {
             }
         }
         else if(equity >= averageEquity){
-         // Button turn 1 check
-            if(turn == 1 && isButton && action.checkPossible){
-                double foldEquity = excessFolding - excessCheckRaising;
-                double polarity = Constants.polar - equity;
-                double eq = polarity + foldEquity;
-                double evForBet = (potSize)*eq - (callAmount)*(1-eq);
-                
-                if(foldEquity + polarity >= goodEquity){
-                    return action.bet((int) evForBet + 1);
-                }
-            }
-         // Non-Button raising
-            if(turn == 1 && !isButton){
-                double foldEquity = excessFolding - .5 * excessFirstAggr;
-                double polarity = Constants.polar - equity;
-                double eq = polarity + foldEquity;
-                double evForBet = (potSize)*eq - (callAmount)*(1-eq);
-                
-                if(foldEquity + polarity >= goodEquity){
-                    return action.bet((int) evForBet + 1);
-                }
-            }
-            double eqForCall = excessFirstAggr;
-            double eq = equity + eqForCall;
-            double evCall = (potSize) * eq - (callAmount)*(1-eq);
             // Just call if ev > 0
-            if(evCall > 0){
+            if(!isButton){
+                double eq = equity - Constants.reduceTurn;
+                evForCall = (potSize)*eq - (callAmount)*(1-eq);
+            }
+            if(evForCall > 0){
                 return action.call();
             }
             else{
@@ -90,28 +46,7 @@ public class Turn {
             }
         }
         else{
-            // Button turn 1 check
-            if(turn == 1 && isButton && action.checkPossible){
-                double foldEquity = excessFolding - excessCheckRaising;
-                double polarity = Constants.polar - equity;
-                double eq = polarity + foldEquity;
-                double evForBet = (potSize)*eq - (callAmount)*(1-eq);
-                
-                if(foldEquity + polarity >= goodEquity){
-                    return action.bet((int) evForBet + 1);
-                }
-            }
-            // Non-Button raising
-            if(turn == 1 && !isButton){
-                double foldEquity = excessFolding - .5 * excessFirstAggr;
-                double polarity = Constants.polar - equity;
-                double eq = polarity + foldEquity;
-                double evForBet = (potSize)*eq - (callAmount)*(1-eq);
-                
-                if(foldEquity + polarity >= goodEquity){
-                    return action.bet((int) evForBet + 1);
-                }
-            }
+            // Check or fold
             return action.check();
         }
     }

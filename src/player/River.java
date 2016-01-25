@@ -13,7 +13,7 @@ public class River {
     double goodEquity = Constants.riverGood;
     double averageEquity = Constants.riverAverage;
  
-    public String takeAction(ProcessActions action, double equity, int potSize, int turn){
+    public String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton){
         
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
@@ -33,6 +33,10 @@ public class River {
             }
         }
         else if(equity >= averageEquity){
+            if(!isButton){
+                double eq = equity - Constants.reduceRiver;
+                evForCall = (potSize)*eq - (callAmount)*(1-eq);
+            }
             // Just call if ev > 0
             if(evForCall > 0){
                 return action.call();

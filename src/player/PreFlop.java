@@ -10,14 +10,13 @@ public class PreFlop {
     double pfr = Constants.pfrPercent;
     double pfrVariance = Constants.pfrVariance;
     
-    public String takeAction(ProcessActions action, double equity, int potSize, int turn){
-        
+    public String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton){
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         
         if (equity >= greatEquity){
             // Raise Maximum.
-            return action.bet(200);
+            return action.bet(2000000);
         }
         else if (equity >= goodEquity){
             // Bet according to EV
@@ -31,6 +30,10 @@ public class PreFlop {
         }
         else if (equity >= badEquity){
             // Just call if ev > 0
+            if(!isButton){
+                double eq = equity - Constants.reducePreflop;
+                evForCall = (potSize)*eq - (callAmount)*(1-eq);
+            }
             if(evForCall > 0){
                 return action.call();
             }

@@ -5,6 +5,7 @@ public class Constants {
     public static double preFlopGreat = .6;
     public static double preFlopGood = .55;
     public static double preFlopAverage = .4;
+    public static double reducePreflop = 0;
     
     public static double preFlop3BetStandard = .85;
     public static double preFlop3betVariance = .15;
@@ -15,11 +16,14 @@ public class Constants {
     public static double flopGreat = .8;
     public static double flopGood = .6;
     public static double flopAverage = .4; 
+    public static double reduceFlop = 0;
     
     // Turn constants
     public static double turnGreat = .8;
     public static double turnGood = .6;
     public static double turnAverage = .5;
+    public static double reduceTurn = 0;
+
     public static double polar = .7;
     
     public static double avgFirstAggr = .4;
@@ -39,6 +43,7 @@ public class Constants {
     public static double riverGreat = .85;
     public static double riverGood = .65;
     public static double riverAverage = .55;
+    public static double reduceRiver = 0;
     
     // Post Flop constants
     public static double standardAggrFactor = 3;
