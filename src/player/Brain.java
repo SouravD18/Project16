@@ -19,9 +19,9 @@ public class Brain {
     double timeBank = 0;
     int handId = 0;
     int handsRemaining = 0;
-    double timePerHandLeft = 0.1;
+    double timePerHandLeft = 0.2;
     
-    public int numSimulations = 2000;
+    public int numSimulations = 7500;
     
     String[] holeCards = new String[4];
     List<String> boardCards = new ArrayList<String>();
@@ -33,7 +33,7 @@ public class Brain {
     int currentPot = 0;
     int previousPot = 0;
     // My stack size
-    int myStack = 200;
+    int myStack = 400;
     boolean isButton = false;
     
     // List of actions:
@@ -114,12 +114,12 @@ public class Brain {
         this.handsRemaining--;
         
         timePerHandLeft = timeBank / handsRemaining;
-        if (timePerHandLeft < 0.18)
-            numSimulations = 1000;
-        else if (timePerHandLeft < 0.22)
-            numSimulations = 2000;
+        if (timePerHandLeft < 0.19)
+            numSimulations = 5000;
+        else if (timePerHandLeft < 0.205)
+            numSimulations = 7500;
         else
-            numSimulations = 2400;
+            numSimulations = 10000;
         
         // Reset some stuff:
         this.turnCounter = 0;
@@ -132,7 +132,7 @@ public class Brain {
         this.turnBetTurn = 0;
         this.riverBetTurn = 0;
         
-        this.myStack = 200;
+        this.myStack = 400;
         this.raisedPreflop = false;
         this.checkedPreflop = false;
         this.myRaisePreflop = false;
