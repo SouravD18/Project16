@@ -1,24 +1,15 @@
 package player;
 
 public class River {
-    /**
-     * Simple version:
-     *      We'll take account the following stuff:
-     *      --> Expected Value for calling
-     *      --> Equity
-     *   Please modify constants after simulations
-     */
-    
-    double reallyGoodEquity = Constants.riverGreat;
-    double goodEquity = Constants.riverGood;
-    double averageEquity = Constants.riverAverage;
+    static double greatEquity = Constants.riverGreat;
+    static double goodEquity = Constants.riverGood;
+    static double averageEquity = Constants.riverAverage;
  
-    public String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton){
-        
+    public static String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton){
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         
-        if(equity >= reallyGoodEquity){
+        if(equity >= greatEquity){
             // Raise Maximum.
             return action.bet(10000);
         }

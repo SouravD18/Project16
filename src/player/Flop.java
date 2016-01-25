@@ -1,28 +1,26 @@
 package player;
 
 public class Flop {
-    
-    double reallyGoodEquity = Constants.flopGreat;
-    double goodEquity = Constants.flopGood;
-    double averageEquity = Constants.flopAverage;
+    static double greatEquity = Constants.flopGreat;
+    static double goodEquity = Constants.flopGood;
+    static double averageEquity = Constants.flopAverage;
  
-    public String takeAction(ProcessActions action, double equity, int potSize, int turn,boolean isButton){
-        
+    public static String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton){
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         
-        if(equity >= reallyGoodEquity){
+        if(equity >= greatEquity){
             // Raise Maximum.
-            return action.bet(2000000);
+            return action.bet(Brain.maxStackSize);
         }
         else if (equity >= goodEquity){
             // Bet according to EV
             // For safety: No 2nd bet
             
-            if(turn < 2){
+            if (turn < 2){
                 return action.bet(callAmount + (int) evForCall);
             }
-            else{
+            else {
                 return action.call();
             }
         }

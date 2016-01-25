@@ -7,34 +7,29 @@ import java.util.List;
 import equity.poker.Main;
 
 public class Brain {
-    // Declaring the necessary fields
-    
-    //Equity
-    double equity = 0.5;
+    // Object to process actions taken by the bot
+    ProcessActions action = new ProcessActions();
+    // Printer for Dump Files
+    DumpPrinter printer = new DumpPrinter();
+    // Historian
+    Historian opponentHistorian = new Historian();
+
     
     // My name and Opponent Name
     String[] Names = new String[2];
-    int myBankRoll = 0;
-    int otherBankRoll = 0;
-    double timeBank = 0;
-    int handId = 0;
-    int handsRemaining = 0;
-    double timePerHandLeft = 0.2;
-    
-    public int numSimulations = 7500;
     
     String[] holeCards = new String[4];
     List<String> boardCards = new ArrayList<String>();
     
-    // Turn Counter keep track of turns: 
-    // Preflop = 0; Flop = 3; Turn = 4; River = 5;
-    int turnCounter = 0;
+    public static final int maxStackSize = 400;
+    double equity = 0.5;
+    public int numSimulations = 7500;
+    boolean isButton = false;
     
+    int handsRemaining = 0;
+    double timePerHandLeft = 0.2;
     int currentPot = 0;
     int previousPot = 0;
-    // My stack size
-    int myStack = 400;
-    boolean isButton = false;
     
     // List of actions:
     // List[0] = my last action
@@ -43,25 +38,18 @@ public class Brain {
     Action[] actions = new Action[3];
     int numberOfLastActions = 0;
     
-    /**
-     *  Betting turn trackers
-     */
+    boolean raisedPreflop = false;
+    boolean checkedPreflop = false;
+    boolean myRaisePreflop = false;
+    
+    // Turn Counter keep track of turns: 
+    // Preflop = 0; Flop = 3; Turn = 4; River = 5;
+    int turnCounter = 0;
+    //betting turntrackers
     int preFlopBetTurn = 0;
     int flopBetTurn = 0;
     int turnBetTurn = 0;
     int riverBetTurn = 0;
-    
-    // Object to process actions taken by the bot
-    ProcessActions action = new ProcessActions();
-    
-    // Printer for Dump Files
-    DumpPrinter printer = new DumpPrinter();
-    
-    // Historian
-    Historian opponentHistorian = new Historian();
-    boolean raisedPreflop = false;
-    boolean checkedPreflop = false;
-    boolean myRaisePreflop = false;
     
     public Brain(){    
     }
@@ -78,12 +66,8 @@ public class Brain {
         this.Names[0] = myName;
         this.Names[1] = opponentName;
         this.handsRemaining = numHands;
-        this.timeBank = time;
         
         // Reset some stuff:
-        this.myBankRoll = 0;
-        this.otherBankRoll = 0;
-        this.handId = 0;
         this.turnCounter = 0;
         this.isButton = false;
         this.currentPot = 0;
@@ -100,7 +84,6 @@ public class Brain {
      */
     public void newHand(int id, boolean button, String[] cards,
                     int myBank,int otherBank, double time){
-        this.handId = id;
         this.isButton = button;
         
         this.holeCards[0] = cards[0];
@@ -108,12 +91,9 @@ public class Brain {
         this.holeCards[2] = cards[2];
         this.holeCards[3] = cards[3];
         
-        this.myBankRoll = myBank;
-        this.otherBankRoll = otherBank;
-        this.timeBank = time;
         this.handsRemaining--;
         
-        timePerHandLeft = timeBank / handsRemaining;
+        timePerHandLeft = time / handsRemaining;
         if (timePerHandLeft < 0.19)
             numSimulations = 5000;
         else if (timePerHandLeft < 0.205)
@@ -132,7 +112,6 @@ public class Brain {
         this.turnBetTurn = 0;
         this.riverBetTurn = 0;
         
-        this.myStack = 400;
         this.raisedPreflop = false;
         this.checkedPreflop = false;
         this.myRaisePreflop = false;
@@ -166,7 +145,6 @@ public class Brain {
         
         // Processing legalActions
         this.action.process(legalActions, this.actions);
-        this.timeBank = time;
     }
     
     /**
@@ -239,7 +217,7 @@ public class Brain {
         //return (new PreFlop()).testAction(this.isButton, this.preFlopBetTurn,
         //        equity, this.currentPot, this.action, this.opponentHistorian);
         
-        return (new PreFlop()).takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn, this.isButton);
+        return PreFlop.takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn, this.isButton);
     }
 
     private String flop(){
@@ -291,7 +269,7 @@ public class Brain {
                 opponentHistorian.continuationBet += 1;
             }
         }
-        return (new Flop()).takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton);
+        return Flop.takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton);
     }    
   
     private String turn(){
@@ -331,9 +309,7 @@ public class Brain {
                 opponentHistorian.turnBet +=1;
             }
         }
-        //return (new Turn().testAction(this.action, this.equity, 
-        //        this.currentPot, this.turnBetTurn, this.opponentHistorian, this.isButton));
-        return (new Turn()).takeAction(this.action, this.equity, this.currentPot, 
+        return Turn.takeAction(this.action, this.equity, this.currentPot, 
                 this.turnBetTurn, this.opponentHistorian, this.isButton);
     }
 
@@ -393,9 +369,7 @@ public class Brain {
                 opponentHistorian.betOrRaiseCount += 1;
             }
         }
-        //return (new River().testAction(this.action, this.equity, 
-        //        this.currentPot, this.riverBetTurn, this.opponentHistorian));
-        return (new River()).takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn, this.isButton);
+        return River.takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn, this.isButton);
     }
     
     public double equity(){
