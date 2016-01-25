@@ -45,12 +45,7 @@ public final class Enumerator extends Thread {
     };
     public static final Set<String> deckSet = new HashSet<String>(Arrays.asList(deckArr));
     public static TLongDoubleMap startingHandEquityMap;
-    
-    /**
-     * Initializes the cardMap and the preFlopMap
-     * Precondition: This method must be called before using any of the other methods!
-     */
-    public static void init(){
+    static{
         cardMap.put("2c", 0x1L << 0);
         cardMap.put("2d", 0x1L << 16);
         cardMap.put("2h", 0x1L << 32);
@@ -115,6 +110,12 @@ public final class Enumerator extends Thread {
             e1.printStackTrace();
         }
     }
+    
+    /**
+     * Call this if you want to reference the Enumerator class and initialize
+     * the static block
+     */
+    public static void init(){}
 
     @Override public final void run() {
         if (isSimulation)
@@ -133,8 +134,6 @@ public final class Enumerator extends Thread {
      */
     public Enumerator(final int instance, final int instances, final String[] myCards, final String[] board, final int numSimulations) {
         super("Enumerator" + instance);
-        if (startingHandEquityMap == null)
-            init();
         startIx = instance;
         increment = instances;
         if (numSimulations == 0)

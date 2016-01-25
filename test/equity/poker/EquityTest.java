@@ -6,7 +6,7 @@ import org.junit.*;
 public class EquityTest {
     public static final double delta = 0.01;
     public static final double strictDelta = 0.005;
-    public static final int numSimulations = 2000;
+    public static final int numSimulations = 5000;
     static {
         Enumerator.init();
     }
@@ -107,15 +107,13 @@ public class EquityTest {
         assertEquals(.6106, result, delta);
     }
     
-    //XXX: Ignored
-    @Test
-    @Ignore
-    public void testTurnEquityExact(){
-        String[] board = {"Jd", "9h", "Ad", "2c"};
-        String[] myCards = {"Qs", "3d", "Th", "5h"};
-        double result = Main.getEquity(board, myCards, 0);
-        assertEquals(.3387, result, strictDelta);
-    }
+//    @Test
+//    public void testTurnEquityExact(){
+//        String[] board = {"Jd", "9h", "Ad", "2c"};
+//        String[] myCards = {"Qs", "3d", "Th", "5h"};
+//        double result = Main.getEquity(board, myCards, 0);
+//        assertEquals(.3387, result, strictDelta);
+//    }
     
     @Test
     public void testRiverEquityExact(){
