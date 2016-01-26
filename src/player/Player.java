@@ -112,7 +112,7 @@ public class Player {
     }
     
     private void processRequestKeyValues(String word[]){
-        int bytesLeft = Integer.parseInt(word[1]);
+        //int bytesLeft = Integer.parseInt(word[1]);
         outStream.println("FINISH");
     }
     

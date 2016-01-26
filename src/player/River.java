@@ -7,13 +7,12 @@ public class River {
     static double goodEquity = Constants.riverGood;
     static double badEquity = Constants.riverAverage;
  
-    public static String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton, Historian mister, int betType){
+    public static String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton, Historian historian, boolean hadBigBet){
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
-        
         double r = Math.random();
 
-        if (Brain.handsIn < 200){ //not enough info yet, play default
+        if (Brain.handsIn < 100){ //not enough info yet, play default
             if (turn == 1){
 
                 if (!isButton){ //We're the BB and act first here
@@ -34,7 +33,7 @@ public class River {
                     }
 
 
-                } else { //we're the SB and act second
+                } else { //we're acting in response to something
                     if (equity >= greatEquity){
                         if (action.raisePossible){ //the opponent has raised
                             return action.bet(Brain.maxStackSize);
@@ -65,22 +64,17 @@ public class River {
             }
 
 
+            
         } else { //play 4 real now
-            double avgPercentileOfOpponentPlayedHands;
-            double foldFreq = mister.riverBettingFrequencies();
-            double betFreq = mister.riverBettingFrequencies();
-            double highBetFreq = mister.highBetPercent();
-            double veryHighBetFreq = mister.veryHighBetPercent();
-            double ourPercentile = Main.convertEquityToPercentile(equity, 5);
             if (!isButton && turn == 1){ //we act first here
 
                 if (equity >= greatEquity){
-                    if (r < (1-foldFreq)){
-                        return action.bet(Brain.maxStackSize); //1-foldFreq that we raise completely
-                    } else if (r < (foldFreq)/2 + (1-foldFreq)) {
-                        return action.bet(4); //foldFreq/2 we raise partially
+                    if (r < 0.8){
+                        return action.bet(Brain.maxStackSize);
+                    } else if (r < 0.9) {
+                        return action.bet(action.upperRange/2); 
                     } else {
-                        return action.call(); //rest we just call
+                        return action.call();
                     }
                 } else if (equity >= goodEquity){
                     return action.bet(callAmount + (int) evForCall);
@@ -94,32 +88,61 @@ public class River {
                     return action.check();
                 }
 
-            } else { //we're acting in response to something
-                if (action.raisePossible){
-                    if (betType == 0){ //regular bet
-                        avgPercentileOfOpponentPlayedHands = 1 - (betFreq + highBetFreq)/2;
-                    } else if (betType == 1){ //mid high bet
-                        avgPercentileOfOpponentPlayedHands = 1 - (highBetFreq + veryHighBetFreq)/2;
-                    } else { //VERY HIGH BET
-                        avgPercentileOfOpponentPlayedHands = 1 - veryHighBetFreq/2;
+            } else if (isButton && turn == 1){ //we go 2nd
+                if (hadBigBet){
+                    double ourPercentile = Main.convertEquityToPercentile(equity, 5);
+                    double avgPercentileOfOpponentPlayedHands = 1 - historian.bigBetFrequency()/2;
+                    double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
+                    System.out.println("My percentile is " + ourPercentile);
+                    System.out.println("I think the opponent's percentile is " + avgPercentileOfOpponentPlayedHands);
+                    if (difference > 0)
+                        return action.bet(Brain.maxStackSize);
+                    else if (difference > -0.10)
+                        return action.call();
+                    else return action.check();
+                } else { //no big bet :(
+                    if (equity >= greatEquity){
+                        return action.bet(Brain.maxStackSize);
+                    } else if (equity >= goodEquity){
+                        return action.bet(callAmount + (int) evForCall);
+                    } else if (equity >= badEquity){
+                        if(evForCall > 0){
+                            return action.call();
+                        } else {
+                            return action.check();
+                        }
+                    } else { //terrible equity
+                        return action.check();
                     }
-                } else if (action.betPossible){ //the opponent has just called, he's somewhere in the middle
-                    avgPercentileOfOpponentPlayedHands = (foldFreq + (1 - betFreq)) / 2;
-                } else {
-                    return action.check();
                 }
-                //XXX: Important: we have to transform the percentiles upwards to account for folding in preFlop
-                double wentToRiverFreq = mister.wentToRiverFrequency();
-                avgPercentileOfOpponentPlayedHands = 1 - ((1 - avgPercentileOfOpponentPlayedHands) * wentToRiverFreq);
-
-                System.out.println("Our percentile is " + ourPercentile);
-                System.out.println("We think the opponent's percentile is around " + avgPercentileOfOpponentPlayedHands);
                 
-                if (ourPercentile > avgPercentileOfOpponentPlayedHands) //our cards are probably better than theirs
-                    return action.bet(Brain.maxStackSize); 
-                if (ourPercentile - avgPercentileOfOpponentPlayedHands > -0.20) //our cards are around even
-                    return action.call();
-                else return action.check(); //our cards are significantly worse, should probably fold
+            } else { //turn >= 2
+                if (hadBigBet){
+                    double ourPercentile = Main.convertEquityToPercentile(equity, 5);
+                    double avgPercentileOfOpponentPlayedHands = 1 - historian.bigBetFrequency()/2;
+                    double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
+                    System.out.println("My percentile is " + ourPercentile);
+                    System.out.println("I think the opponent's percentile is " + avgPercentileOfOpponentPlayedHands);
+                    if (difference > 0)
+                        return action.bet(Brain.maxStackSize);
+                    else if (difference > -0.10)
+                        return action.call();
+                    else return action.check();
+                } else { //no big bet :(
+                    if (equity >= greatEquity){
+                        return action.bet(Brain.maxStackSize);
+                    } else if (equity >= goodEquity){
+                        return action.call();
+                    } else if (equity >= badEquity){
+                        if(evForCall > 0){
+                            return action.call();
+                        } else {
+                            return action.check();
+                        }
+                    } else { //terrible equity
+                        return action.check();
+                    }
+                }
             }
         }
     }
