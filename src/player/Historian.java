@@ -57,6 +57,10 @@ public class Historian {
     int checkRaiseTurn = 0;
     int checkRaiseRiver = 0;
     
+    //general
+    int highBet = 0;
+    int veryHighBet = 0;
+    
     public void printAll(){
         System.out.println("vpip: "+vpip);
         System.out.println("pfr: "+pfr);
@@ -76,6 +80,8 @@ public class Historian {
         System.out.println("numberOfHands: "+numberOfHands);
         System.out.println("winCount: "+winCount);
         System.out.println("foldCount: "+foldCount);
+        System.out.println("highBet: " + highBet);
+        System.out.println("veryHighBet: " + veryHighBet);
         
         System.out.println("\n");
         
@@ -100,6 +106,9 @@ public class Historian {
         System.out.println("River bet: "+riverBettingFrequencies());
         System.out.println("River check raise: "+riverCheckRaiseFrequencies());
         System.out.println("River fold: "+riverFoldingFrequencies());
+        
+        System.out.println("High bet: " + highBetPercent());
+        System.out.println("Very high bet: " + veryHighBetPercent());
     }
     /**
      *  (number of three bet) / (number of BB)
@@ -216,6 +225,23 @@ public class Historian {
         }
         return answer;
     }
+    
+    public double highBetPercent(){
+        double answer = 0.0;
+        if (highBet > 0){
+            answer = ((double) highBet) / numberOfHands;
+        }
+        return answer;
+    }
+    
+    public double veryHighBetPercent(){
+        double answer = 0.0;
+        if (veryHighBet > 0){
+            answer = ((double) veryHighBet) / numberOfHands;
+        }
+        return answer;
+    }
+    
     public double flopBettingFrequencies(){
         double answer = 0.0;
         if(wentToFlop > 0){
@@ -284,6 +310,30 @@ public class Historian {
         double answer = 0.0;
         if(wentToRiver > 0){
             answer = ((double) foldRiver) / wentToRiver;
+        }
+        return answer;
+    }
+    
+    public double wentToFlopFrequency(){
+        double answer = 0.0;
+        if(wentToFlop > 0){
+            answer = ((double) wentToFlop) / numberOfHands;
+        }
+        return answer;
+    }
+    
+    public double wentToTurnFrequency(){
+        double answer = 0.0;
+        if(wentToTurn > 0){
+            answer = ((double) wentToTurn) / numberOfHands;
+        }
+        return answer;
+    }
+    
+    public double wentToRiverFrequency(){
+        double answer = 0.0;
+        if(wentToRiver > 0){
+            answer = ((double) wentToRiver) / numberOfHands;
         }
         return answer;
     }

@@ -171,8 +171,6 @@ public class Player {
     }
     
     private void processHandOver(String word[]){
-        int myBank = Integer.parseInt(word[1]);
-        int otherBank = Integer.parseInt(word[2]);
         
         int numBoardCards = Integer.parseInt(word[3]);
         
@@ -193,7 +191,5 @@ public class Player {
         }
         // Update handOver
         this.myBrain.updateAfterHandOver(lastActions);
-        
-        double timeBank = Double.parseDouble(word[index]);
     }
 }
