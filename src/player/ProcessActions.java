@@ -1,26 +1,18 @@
 package player;
 
-import java.util.OptionalInt;
-
 public class ProcessActions {
     
-    boolean checkPossible = false;
-    boolean betPossible = false;
+    public boolean checkPossible = false;
+    public boolean betPossible = false;
     boolean raisePossible = false;
     // Upper range of bet
-    int upperRange = 0;
+    public int upperRange = 0;
     // Lower range of bet
-    int lowerRange = 0;
+    public int lowerRange = 0;
     
     // Helper field to calculate call amount:
-    int moneyGiven = 0;
-    int opponentMoney = 0;
-    /**
-     * Constructor
-     */
-    public void processActions(){
-        
-    }
+    public int moneyGiven = 0;
+    public int opponentMoney = 0;
     
     /**
      * process actions

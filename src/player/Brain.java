@@ -26,6 +26,7 @@ public class Brain {
     public int numSimulations = 7500;
     boolean isButton = false;
     
+    public static int handsIn = 0;
     int handsRemaining = 0;
     double timePerHandLeft = 0.2;
     int currentPot = 0;
@@ -92,6 +93,7 @@ public class Brain {
         this.holeCards[3] = cards[3];
         
         this.handsRemaining--;
+        handsIn++;
         
         timePerHandLeft = time / handsRemaining;
         if (timePerHandLeft < 0.19)
@@ -214,10 +216,8 @@ public class Brain {
                 }
             }
         }
-        //return (new PreFlop()).testAction(this.isButton, this.preFlopBetTurn,
-        //        equity, this.currentPot, this.action, this.opponentHistorian);
         
-        return PreFlop.takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn, this.isButton);
+        return PreFlop.takeAction(this.action, this.equity, this.currentPot, this.preFlopBetTurn, this.isButton, this.opponentHistorian);
     }
 
     private String flop(){
@@ -269,7 +269,7 @@ public class Brain {
                 opponentHistorian.continuationBet += 1;
             }
         }
-        return Flop.takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton);
+        return Flop.takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton, this.opponentHistorian);
     }    
   
     private String turn(){
@@ -309,8 +309,7 @@ public class Brain {
                 opponentHistorian.turnBet +=1;
             }
         }
-        return Turn.takeAction(this.action, this.equity, this.currentPot, 
-                this.turnBetTurn, this.opponentHistorian, this.isButton);
+        return Turn.takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn, this.isButton, this.opponentHistorian);
     }
 
     private String river(){
@@ -369,7 +368,7 @@ public class Brain {
                 opponentHistorian.betOrRaiseCount += 1;
             }
         }
-        return River.takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn, this.isButton);
+        return River.takeAction(this.action, this.equity, this.currentPot, this.riverBetTurn, this.isButton, this.opponentHistorian);
     }
     
     public double equity(){

@@ -4,9 +4,8 @@ public class Turn {
     static double greatEquity = Constants.turnGreat;
     static double goodEquity = Constants.turnGood;
     static double averageEquity = Constants.turnAverage;
- 
-    public static String takeAction(ProcessActions action, double equity, int potSize, int turn, 
-            Historian mister, boolean isButton){
+
+    public static String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton, Historian mister){
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         
@@ -27,7 +26,7 @@ public class Turn {
         else if(equity >= averageEquity){
             // Just call if ev > 0
             if(!isButton){
-                double eq = equity - Constants.reduceTurn;
+                double eq = equity;
                 evForCall = (potSize)*eq - (callAmount)*(1-eq);
             }
             if(evForCall > 0){

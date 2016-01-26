@@ -6,6 +6,7 @@ import org.junit.*;
 public class EquityTest {
     public static final double delta = 0.01;
     public static final double strictDelta = 0.005;
+    public static final double veryStrictDelta = 0.001;
     public static final int numSimulations = 5000;
     static {
         Enumerator.init();
@@ -121,5 +122,45 @@ public class EquityTest {
         String[] myCards = {"5d", "6c", "Ks", "9d"};
         double result = Main.getEquity(board, myCards, 0);
         assertEquals(.6195, result, strictDelta);
+    }
+    
+    @Test
+    public void testConverterPreFlop(){
+        assertEquals(0.91, Main.convertEquityToPercentile(.59, 0), veryStrictDelta);
+        assertEquals(0.614, Main.convertEquityToPercentile(.5125, 0), veryStrictDelta);
+        assertEquals(1, Main.convertEquityToPercentile(1, 0), veryStrictDelta);
+        assertEquals(1, Main.convertEquityToPercentile(0.995, 0), veryStrictDelta);
+        assertEquals(0, Main.convertEquityToPercentile(0, 0), veryStrictDelta);
+        assertEquals(0.019, Main.convertEquityToPercentile(.385, 0), veryStrictDelta);
+    }
+    
+    @Test
+    public void testConverterFlop(){
+        assertEquals(0.705686, Main.convertEquityToPercentile(.59, 3), veryStrictDelta);
+        assertEquals(0.5533, Main.convertEquityToPercentile(.5125, 3), veryStrictDelta);
+        assertEquals(1, Main.convertEquityToPercentile(1, 3), veryStrictDelta);
+        assertEquals(1, Main.convertEquityToPercentile(0.995, 3), veryStrictDelta);
+        assertEquals(0, Main.convertEquityToPercentile(0, 3), veryStrictDelta);
+        assertEquals(0.2888, Main.convertEquityToPercentile(.385, 3), veryStrictDelta);
+    }
+    
+    @Test
+    public void testConverterTurn(){
+        assertEquals(0.662549, Main.convertEquityToPercentile(.59, 4), veryStrictDelta);
+        assertEquals(0.5552, Main.convertEquityToPercentile(.5125, 4), veryStrictDelta);
+        assertEquals(1, Main.convertEquityToPercentile(1, 4), veryStrictDelta);
+        assertEquals(0.9976, Main.convertEquityToPercentile(0.995, 4), veryStrictDelta);
+        assertEquals(0, Main.convertEquityToPercentile(0, 4), veryStrictDelta);
+        assertEquals(0.3643, Main.convertEquityToPercentile(.385, 4), veryStrictDelta);
+    }
+    
+    @Test
+    public void testConverterRiver(){
+        assertEquals(0.587059, Main.convertEquityToPercentile(.59, 5), veryStrictDelta);
+        assertEquals(0.5103, Main.convertEquityToPercentile(.5125, 5), veryStrictDelta);
+        assertEquals(1, Main.convertEquityToPercentile(1, 5), veryStrictDelta);
+        assertEquals(0.989902, Main.convertEquityToPercentile(0.995, 5), veryStrictDelta);
+        assertEquals(0, Main.convertEquityToPercentile(0, 5), veryStrictDelta);
+        assertEquals(0.396863, Main.convertEquityToPercentile(.385, 5), veryStrictDelta);
     }
 }

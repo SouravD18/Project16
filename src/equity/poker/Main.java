@@ -8,6 +8,8 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Random;
 
+import gnu.trove.map.TIntDoubleMap;
+
 public class Main{
 
     public static int threads = Runtime.getRuntime().availableProcessors();
@@ -18,7 +20,6 @@ public class Main{
  
     public static void main(String[] args) throws IOException {
         Enumerator.init();
-        
 //        String[] board = {"6h", "Kd", "Th"};
 //        String[] myCards = {"5d", "Ad", "6s", "7s"};
 //        String[] opponentCards = {"7d", "4s", "Ks", "Kc"};
@@ -41,8 +42,6 @@ public class Main{
 //        double duration = ((endTime - startTime))/1000000.0;  //divide by 1000000 to get milliseconds.
 //        System.out.println("Duration is " + duration + " milliseconds");
 //        System.out.println(equity);
-        
-        printAverageTime(5000);
     }
 
     /**
@@ -93,48 +92,82 @@ public class Main{
         return (wins + splits/2.0) / (wins + splits + losses);
     }
     
-    public static void printAverageTime(int numSimulations){
-        String[] boardCards = new String[5];
-        String[] handCards = new String[4];
-        long totalTime = 0;
-        for (int i = 0; i < 1; i++){
-            pickRandomCards(boardCards, handCards);
-            long startTime = System.nanoTime();
-            
-            getEquity(new String[] {}, handCards, numSimulations);
-            String[] turnHand = Arrays.copyOfRange(boardCards, 0, 3);
-            getEquity(turnHand, handCards, numSimulations);
-            getEquity(boardCards, handCards, numSimulations);
-            totalTime += System.nanoTime() - startTime;
+    /**
+     * Converts equity to percentile
+     * @param equity 
+     * @param turn 0 = preflop, 3 = flop, 4 = turn, 5 = river
+     */
+    public static double convertEquityToPercentile(double equity, int turn){
+        TIntDoubleMap map;
+        switch (turn){
+        case 0:
+            map = Enumerator.equityPreFlopPercentileMap;
+            break;
+        case 3:
+            map = Enumerator.equityFlopPercentileMap;
+            break;
+        case 4:
+            map = Enumerator.equityTurnPercentileMap;
+            break;
+        case 5:
+            map = Enumerator.equityRiverPercentileMap;
+            break;
+        default:
+            return 0.5;
         }
-        System.out.println("On average simulation took " + (totalTime / 1)/1e6 + " milliseconds");
+        
+        if (equity <= 0 || equity >= 1)
+            return equity;
+        
+        equity *= 100;
+        int intEquity = (int) equity;
+        double remaining = equity - intEquity;
+        
+        return (1-remaining)*map.get(intEquity) + (remaining)*map.get(intEquity+1);
     }
     
-    public static void pickRandomCards(String[] boardCards, String[] handCards){
-        int[] numbers = new int[52];
-        for (int i = 0; i < numbers.length; i++)
-            numbers[i] = i;
-        shuffleArray(numbers);
-        for (int i = 0; i < boardCards.length; i++)
-            boardCards[i] = Enumerator.deckArr[numbers[i]];
-        for (int i = 0; i < handCards.length; i++)
-            handCards[i] = Enumerator.deckArr[numbers[i + boardCards.length]];
-    }
-    
-    public static void shuffleArray(int[] array){
-        Random r = new Random();
-        int index;
-        for (int i = array.length - 1; i > 0; i--)
-        {
-            index = r.nextInt(i + 1);
-            if (index != i)
-            {
-                array[index] ^= array[i];
-                array[i] ^= array[index];
-                array[index] ^= array[i];
-            }
-        }
-    }
+//  public static void printAverageTime(int numSimulations){
+//  String[] boardCards = new String[5];
+//  String[] handCards = new String[4];
+//  long totalTime = 0;
+//  for (int i = 0; i < 1; i++){
+//      pickRandomCards(boardCards, handCards);
+//      long startTime = System.nanoTime();
+//      
+//      getEquity(new String[] {}, handCards, numSimulations);
+//      String[] turnHand = Arrays.copyOfRange(boardCards, 0, 3);
+//      getEquity(turnHand, handCards, numSimulations);
+//      getEquity(boardCards, handCards, numSimulations);
+//      totalTime += System.nanoTime() - startTime;
+//  }
+//  System.out.println("On average simulation took " + (totalTime / 1)/1e6 + " milliseconds");
+//}
+//
+//public static void pickRandomCards(String[] boardCards, String[] handCards){
+//  int[] numbers = new int[52];
+//  for (int i = 0; i < numbers.length; i++)
+//      numbers[i] = i;
+//  shuffleArray(numbers);
+//  for (int i = 0; i < boardCards.length; i++)
+//      boardCards[i] = Enumerator.deckArr[numbers[i]];
+//  for (int i = 0; i < handCards.length; i++)
+//      handCards[i] = Enumerator.deckArr[numbers[i + boardCards.length]];
+//}
+//
+//public static void shuffleArray(int[] array){
+//  Random r = new Random();
+//  int index;
+//  for (int i = array.length - 1; i > 0; i--)
+//  {
+//      index = r.nextInt(i + 1);
+//      if (index != i)
+//      {
+//          array[index] ^= array[i];
+//          array[i] ^= array[index];
+//          array[index] ^= array[i];
+//      }
+//  }
+//}
     
 //  /**
 //  * Returns the value of an Omaha 9-card hand

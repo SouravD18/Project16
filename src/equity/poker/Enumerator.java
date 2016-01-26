@@ -10,7 +10,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import gnu.trove.map.TIntDoubleMap;
 import gnu.trove.map.TLongDoubleMap;
+import gnu.trove.map.hash.TIntDoubleHashMap;
 import gnu.trove.map.hash.TLongDoubleHashMap;
 
 public final class Enumerator extends Thread {
@@ -45,6 +47,10 @@ public final class Enumerator extends Thread {
     };
     public static final Set<String> deckSet = new HashSet<String>(Arrays.asList(deckArr));
     public static TLongDoubleMap startingHandEquityMap;
+    public static TIntDoubleMap equityPreFlopPercentileMap;
+    public static TIntDoubleMap equityFlopPercentileMap;
+    public static TIntDoubleMap equityTurnPercentileMap;
+    public static TIntDoubleMap equityRiverPercentileMap;
     static{
         cardMap.put("2c", 0x1L << 0);
         cardMap.put("2d", 0x1L << 16);
@@ -99,16 +105,34 @@ public final class Enumerator extends Thread {
         cardMap.put("Ah", 0x1L << 44);
         cardMap.put("As", 0x1L << 60);
 
-        FileInputStream fis;
         try {
+            FileInputStream fis;
+            ObjectInputStream ois;
             fis = new FileInputStream(new File("startingMap"));
-            ObjectInputStream ois = new ObjectInputStream(fis);
+            ois = new ObjectInputStream(fis);
             startingHandEquityMap = (TLongDoubleHashMap) ois.readObject();
+            fis = new FileInputStream(new File("equityPreFlopPercentileMap"));
+            ois = new ObjectInputStream(fis);
+            equityPreFlopPercentileMap = (TIntDoubleHashMap) ois.readObject();
+            fis = new FileInputStream(new File("equityFlopPercentileMap"));
+            ois = new ObjectInputStream(fis);
+            equityFlopPercentileMap = (TIntDoubleHashMap) ois.readObject();
+            fis = new FileInputStream(new File("equityTurnPercentileMap"));
+            ois = new ObjectInputStream(fis);
+            equityTurnPercentileMap = (TIntDoubleHashMap) ois.readObject();
+            fis = new FileInputStream(new File("equityRiverPercentileMap"));
+            ois = new ObjectInputStream(fis);
+            equityRiverPercentileMap = (TIntDoubleHashMap) ois.readObject();
             ois.close();
             fis.close();
         } catch (ClassNotFoundException | IOException e1) {
             e1.printStackTrace();
         }
+        //for insurance purposes
+        equityPreFlopPercentileMap.put(101, 1);
+        equityFlopPercentileMap.put(101, 1);
+        equityTurnPercentileMap.put(101, 1);
+        equityRiverPercentileMap.put(101, 1);
     }
     
     /**

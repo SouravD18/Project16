@@ -121,6 +121,17 @@ public class Historian {
         }
         return answer;
     }
+    
+    /**
+     * vpip / (number of hands)
+     * 
+     * @return vpip percentage
+     */
+    public double vpipPercent(){
+        double answer = ((double) vpip) / numberOfHands;
+        return answer;
+    }
+    
     /**
      * pfr / (number of hands)
      * 

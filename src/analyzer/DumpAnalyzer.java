@@ -18,7 +18,7 @@ import java.util.List;
  *
  */
 public class DumpAnalyzer {
-    public static final String TEAM_NAME = "GucciPoker";
+    public static final String TEAM_NAME = "player1";
     public static final String DIRECTORY = "C:/Users/unive/Desktop/Hand Logs";
     
     public static void main(String[] args) throws IOException{
