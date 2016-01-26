@@ -20,12 +20,13 @@ public class Main{
  
     public static void main(String[] args) throws IOException {
         Enumerator.init();
-//        String[] board = {"6h", "Kd", "Th"};
-//        String[] myCards = {"5d", "Ad", "6s", "7s"};
-//        String[] opponentCards = {"7d", "4s", "Ks", "Kc"};
+        String[] board = "4s 5h 9d 3c Jh".split(" ");
+        String[] myCards = "Ac Js 2s Qd".split(" ");
+        String[] opponentCards = "2h 6c Tc Jd".split(" ");
 //        
-//        System.out.println("My equity is " + getEquity(board, myCards, 1000));
-//        System.out.println("Opponent equity is " + getEquity(board, opponentCards, 1000));
+        System.out.println("My equity is " + getEquity(board, myCards, 1000));
+        System.out.println("My percentile is " + convertEquityToPercentile(getEquity(board, myCards, 1000), 5));
+        System.out.println("Opponent equity is " + getEquity(board, opponentCards, 1000));
         
 //        for (int i = 0; i < 1000; i++){
 //            String[] board = {};

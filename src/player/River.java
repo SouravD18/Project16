@@ -71,7 +71,7 @@ public class River {
             double betFreq = mister.riverBettingFrequencies();
             double highBetFreq = mister.highBetPercent();
             double veryHighBetFreq = mister.veryHighBetPercent();
-            double ourPercentile = Main.convertEquityToPercentile(equity, 0);
+            double ourPercentile = Main.convertEquityToPercentile(equity, 5);
             if (!isButton && turn == 1){ //we act first here
 
                 if (equity >= greatEquity){
@@ -117,7 +117,7 @@ public class River {
                 
                 if (ourPercentile > avgPercentileOfOpponentPlayedHands) //our cards are probably better than theirs
                     return action.bet(Brain.maxStackSize); 
-                if (ourPercentile - avgPercentileOfOpponentPlayedHands > -0.05) //our cards are around even
+                if (ourPercentile - avgPercentileOfOpponentPlayedHands > -0.20) //our cards are around even
                     return action.call();
                 else return action.check(); //our cards are significantly worse, should probably fold
             }

@@ -160,7 +160,7 @@ public class Brain {
      */
     public String decision(){
         // Check whether it's preflop/ flop/ turn/ river, and then call functions accordingly
-
+        betType = 0;
         if(this.turnCounter == 0){
             return preFlop();
         }
@@ -439,11 +439,18 @@ public class Brain {
             opponentHistorian.winCount += 1;
             if(givenActions[size - 2].actionType().equals("SHOW")){
                 opponentHistorian.winSD_post += 1;
+                
             }
         }
 
         if(givenActions[size - 2].actionType().equals("SHOW")){
             opponentHistorian.wentSD_post += 1;
+        }
+        
+        if(givenActions[size - 2].actor().equals(this.Names[1])){
+            System.out.println("The opponent's actual percentiles for ");
+        } else {
+            
         }
 
         if(givenActions[1].actionType().equals("FOLD")){
