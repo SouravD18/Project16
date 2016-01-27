@@ -411,36 +411,6 @@ public final class Enumerator extends Thread {
     }
     
     /**
-     * Called whenever both you and your opponent's hands are known
-     * And you're iterating through all the possible boards
-     */
-    private void enumAllDecksWithKnownHands() {
-        int handValue0, handValue1;
-        for (int deckIx1 = startIx; deckIx1 <= limitIx1; deckIx1 += increment) {
-            board[0] = deck[deckIx1];
-            for (int deckIx2 = deckIx1 + 1; deckIx2 <= limitIx2; ++deckIx2) {
-                board[1] = deck[deckIx2];
-                for (int deckIx3 = deckIx2 + 1; deckIx3 <= limitIx3; ++deckIx3) {
-                    board[2] = deck[deckIx3];
-                    for (int deckIx4 = deckIx3 + 1; deckIx4 <= limitIx4; ++deckIx4) {
-                        board[3] = deck[deckIx4];
-                        for (int deckIx5 = deckIx4 + 1; deckIx5 <= limitIx5; ++deckIx5) {
-                            board[4] = deck[deckIx5];
-                            handValue0 = HandEval.OmahaHighEval(board, myCards);
-                            handValue1 = HandEval.OmahaHighEval(board, opponentCards);
-                            if (handValue0 > handValue1)
-                                wins++;
-                            else if (handValue0 == handValue1)
-                                splits++;
-                            else losses++;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    /**
      * Shuffles the array using the Fisher-Yates method
      * @param array The input array to be shuffled
      */

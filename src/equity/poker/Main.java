@@ -23,26 +23,10 @@ public class Main{
         String[] board = "4s 5h 9d 3c Jh".split(" ");
         String[] myCards = "Ac Js 2s Qd".split(" ");
         String[] opponentCards = "2h 6c Tc Jd".split(" ");
-//        
+       
         System.out.println("My equity is " + getEquity(board, myCards, 1000));
         System.out.println("My percentile is " + convertEquityToPercentile(getEquity(board, myCards, 1000), 5));
         System.out.println("Opponent equity is " + getEquity(board, opponentCards, 1000));
-        
-//        for (int i = 0; i < 1000; i++){
-//            String[] board = {};
-//            String[] myCards = {"5s", "7c", "9h", "Jc"};
-//            double result = Main.getEquity(board, myCards, 125);
-//            System.out.println(result);
-//        }
-        
-//        long startTime = System.nanoTime();
-//        String[] board = {"4c", "Kh", "8s"};
-//        String[] myCards = {"5d", "6c", "Ks", "9d"};
-//        double equity = getEquity(board, myCards, 4000);
-//        long endTime = System.nanoTime();
-//        double duration = ((endTime - startTime))/1000000.0;  //divide by 1000000 to get milliseconds.
-//        System.out.println("Duration is " + duration + " milliseconds");
-//        System.out.println(equity);
     }
 
     /**

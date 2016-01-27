@@ -8,17 +8,19 @@ import equity.poker.Main;
 
 public class Brain {
     ProcessActions action = new ProcessActions();
-    DumpPrinter printer = new DumpPrinter();
     Historian historian = new Historian();
+    PostFlop postFlop = new PostFlop(3, historian);
+    PostFlop turn = new PostFlop(4, historian);
+    PostFlop river = new PostFlop(5, historian);
 
-    // {Name, OpponentName}
-    String[] Names = new String[2];
+    String myName;
+    String opponentName;
     String[] holeCards = new String[4];
     List<String> boardCards = new ArrayList<String>();
 
     public static final int maxStackSize = 400;
     double equity = 0.5;
-    public int numSimulations = 2000;
+    public int numSimulations = 1000;
     boolean isButton = false;
 
     public static int handsIn = 0;
@@ -31,7 +33,7 @@ public class Brain {
     int numberOfLastActions = 0;
 
     int preFlopType = 0; //what the opponent does preflop (with it being the SB), 
-    //0 = fold, 1 = check, 2 = raise 4, 3 = raise 5, 4 = raise 6
+    //0= check, 1 = raise 4, 2 = raise 5, 3 = raise 6
     boolean hadBigBet;
 
     // Turn Counter keep track of turns: 
@@ -43,8 +45,6 @@ public class Brain {
     int turnBetTurn = 0;
     int riverBetTurn = 0;
 
-    public Brain(){    
-    }
     /**
      *  Whenever a new game starts, it resets everything.
      * @param myName
@@ -55,8 +55,8 @@ public class Brain {
     public void newGame(String myName, String opponentName, 
             int numHands, double time){
 
-        this.Names[0] = myName;
-        this.Names[1] = opponentName;
+        this.myName = myName;
+        this.opponentName = opponentName;
         this.handsRemaining = numHands;
 
         // Reset some stuff:
@@ -85,7 +85,7 @@ public class Brain {
         this.handsRemaining--;
         handsIn++;
 
-//        XXX: timePerHandLeft = time / handsRemaining;
+//        timePerHandLeft = time / handsRemaining;
 //        if (timePerHandLeft < 0.19)
 //            numSimulations = 5000;
 //        else if (timePerHandLeft < 0.205)
@@ -102,8 +102,8 @@ public class Brain {
         this.turnBetTurn = 0;
         this.riverBetTurn = 0;
         this.turnCounter = 0;
-        this.preFlopBetTurn = 0;
         this.hadBigBet = false;
+        this.preFlopType = 0;
     }
 
     public void getAction(int pot, int numBoardCards, String[] board, int numLastActions,
@@ -117,19 +117,14 @@ public class Brain {
             this.boardCards.addAll(Arrays.asList(board));
         }
         for(Action act: lastActions){
-            // If the action is mine
-            if(act.actor().equals(this.Names[0])){
+            if(act.actor().equals(myName)){
                 this.actions[0] = act;
             }
-            // If Opponent's action:
-            else if(act.actor().equals(this.Names[1])){
+            else if(act.actor().equals(opponentName)){
                 this.actions[1] = act;
             }
         }
-        // Assign last Action
         this.actions[2] = lastActions[numLastActions - 1];
-
-        // Process legalActions
         this.action.process(legalActions, this.actions);
     }
 
@@ -163,13 +158,8 @@ public class Brain {
             equity = Main.getEquity(new String[]{}, holeCards, numSimulations);
             if (!isButton){
                 if (opponentAction.actionType().equals("RAISE")){
-                    preFlopType = opponentAction.amount() - 2;
-                }
-                else if (opponentAction.actionType().equals("CALL")){
-                    preFlopType = 1;
-                } else {
-                    preFlopType = 0; //he folds!
-                }
+                    preFlopType = opponentAction.amount() - 3;
+                } //else preFlopType = 0;
                 historian.preFlopTypes[preFlopType]++;
             }
         }
@@ -193,7 +183,7 @@ public class Brain {
                 hadBigBet = true;
         }
         
-        return Flop.takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton, this.historian, hadBigBet);
+        return postFlop.takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton, hadBigBet);
     }    
 
     private String turn(){
@@ -214,7 +204,7 @@ public class Brain {
                 hadBigBet = true;
         }
         
-        return Turn.takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn, this.isButton, this.historian, hadBigBet);
+        return turn.takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn, this.isButton, hadBigBet);
     }
 
     private String river(){
@@ -236,13 +226,47 @@ public class Brain {
                 hadBigBet = true;
         }
         
-        return River.takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn, this.isButton, this.historian, hadBigBet);
+        return river.takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn, this.isButton, hadBigBet);
     }
 
     public void updateAfterHandOver(Action[] givenActions){
         if (hadBigBet)
             historian.numBigBets++;
         historian.numHands++;
+
+        switch(turnCounter){
+        case 3:
+            historian.reachedFlop++;
+            break;
+        case 4:
+            historian.reachedFlop++;
+            historian.reachedTurn++;
+            break;
+        case 5:
+            historian.reachedFlop++;
+            historian.reachedTurn++;
+            historian.reachedRiver++;
+            break;
+        }
+
+        for (Action a: givenActions){
+            if (a.actionType().equals("FOLD") && a.actor().equals(opponentName)){
+                switch (turnCounter){
+                case 0:
+                    historian.foldPreFlop++;
+                    break;
+                case 3:
+                    historian.foldFlop++;
+                    break;
+                case 4:
+                    historian.foldTurn++;
+                    break;
+                case 5:
+                    historian.foldRiver++;
+                    break;
+                }
+            }
+        }
         historian.printAll();
     }
 }

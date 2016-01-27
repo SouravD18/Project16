@@ -16,9 +16,9 @@ public class PreFlop {
 
                 if (isButton){ //We act first here
                     if (equity >= greatEquity){
-                        if (r < 0.6){
+                        if (r > 0.4){
                             return action.bet(Brain.maxStackSize); //60% we raise full
-                        } else if (r < 0.8) {
+                        } else if (r > 0.2) {
                             return action.bet(4); //20% we raise partially
                         } else {
                             return action.call(); //20% we just call
@@ -65,16 +65,20 @@ public class PreFlop {
                 }
             }
 
+            
+            
 
         } else { //it's been over 100 turns, we can start analyzing data
 
             if (turn == 1 && isButton){ //we go first
                 if (equity >= greatEquity){
-                    double probFolding = historian.preFlopTypeExact(0);
+                    double probFolding = historian.foldPreFlopFrequency();
                     if (r > probFolding){
                         return action.bet(Brain.maxStackSize);
-                    } else {
+                    } else if (r > probFolding/2) {
                         return action.bet(4);
+                    } else {
+                        return action.call();
                     }
                 } else if (equity >= goodEquity){
                     return action.bet(callAmount + (int) evForCall);
@@ -87,15 +91,13 @@ public class PreFlop {
                 } else { //terrible equity
                     return action.check();
                 }
-            } else { //turn >=2
+            } else { //we're acting in response to something
                 double avgPercentileOfOpponentPlayedHands = historian.preFlopTypePercentile(preFlopType);
                 double ourPercentile = Main.convertEquityToPercentile(equity, 0);
                 double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
                 if (difference > 0.2)
                     return action.bet(Brain.maxStackSize); 
-                else if (difference > 0.05)
-                    return action.bet(Brain.maxStackSize);
-                else if (difference < -0.1)
+                else if (difference > -0.1)
                     return action.call();
                 else return action.check();
             }
