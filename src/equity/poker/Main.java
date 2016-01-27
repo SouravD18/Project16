@@ -20,9 +20,9 @@ public class Main{
  
     public static void main(String[] args) throws IOException {
         Enumerator.init();
-        String[] board = "4s 5h 9d 3c Jh".split(" ");
-        String[] myCards = "Ac Js 2s Qd".split(" ");
-        String[] opponentCards = "2h 6c Tc Jd".split(" ");
+        String[] board = "9c 9h Tc".split(" ");
+        String[] myCards = "Ts 9d 7d 6h".split(" ");
+        String[] opponentCards = "3c 7s 8h Jc".split(" ");
        
         System.out.println("My equity is " + getEquity(board, myCards, 1000));
         System.out.println("My percentile is " + convertEquityToPercentile(getEquity(board, myCards, 1000), 5));

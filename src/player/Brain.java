@@ -20,7 +20,7 @@ public class Brain {
 
     public static final int maxStackSize = 400;
     double equity = 0.5;
-    public int numSimulations = 1000;
+    public int numSimulations = 7500;
     boolean isButton = false;
 
     public static int handsIn = 0;
@@ -85,13 +85,13 @@ public class Brain {
         this.handsRemaining--;
         handsIn++;
 
-//        timePerHandLeft = time / handsRemaining;
-//        if (timePerHandLeft < 0.19)
-//            numSimulations = 5000;
-//        else if (timePerHandLeft < 0.205)
-//            numSimulations = 7500;
-//        else
-//            numSimulations = 10000;
+        timePerHandLeft = time / handsRemaining;
+        if (timePerHandLeft < 0.19)
+            numSimulations = 5000;
+        else if (timePerHandLeft < 0.205)
+            numSimulations = 7500;
+        else
+            numSimulations = 10000;
 
         // Reset some stuff:
         this.turnCounter = 0;
@@ -267,6 +267,10 @@ public class Brain {
                 }
             }
         }
+        
+        if (historian.numHands >= 1500)
+            historian.halveEverything();
+        
         historian.printAll();
     }
 }

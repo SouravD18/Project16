@@ -68,6 +68,21 @@ public class Historian {
             return 0.2;
         }
     }
+    
+    public void halveEverything(){
+        numHands /= 2;
+        for (int i = 0; i < preFlopTypes.length; i++){
+            preFlopTypes[i] /= 2;
+        }
+        numBigBets /= 2;
+        foldPreFlop /= 2;
+        foldFlop /= 2;
+        foldTurn /= 2;
+        foldRiver /= 2;
+        reachedFlop /= 2;
+        reachedTurn /= 2;
+        reachedRiver /= 2;
+    }
 
     public void printAll(){
         System.out.println("Number of hands is " + numHands);
