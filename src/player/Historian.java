@@ -13,6 +13,8 @@ public class Historian {
     public int reachedFlop = 0;
     public int reachedTurn = 0;
     public int reachedRiver = 0;
+    public int ultimateGames = 0;
+    public int ultimateWins = 0;
 
     public double preFlopTypePercentile(int index){
         if (numHands == 0)
@@ -29,7 +31,11 @@ public class Historian {
     public double bigBetFrequency(){
         if (numHands == 0)
             return 0;
-        return ((double) numBigBets) / numHands;
+        double returnVal =  ((double) numBigBets) / numHands;
+        if (returnVal < 0.05)
+            return 0.05;
+        return returnVal;
+        
     }
 
     public double foldPreFlopFrequency(){
@@ -69,19 +75,31 @@ public class Historian {
         }
     }
     
-    public void halveEverything(){
-        numHands /= 2;
-        for (int i = 0; i < preFlopTypes.length; i++){
-            preFlopTypes[i] /= 2;
-        }
-        numBigBets /= 2;
-        foldPreFlop /= 2;
-        foldFlop /= 2;
-        foldTurn /= 2;
-        foldRiver /= 2;
-        reachedFlop /= 2;
-        reachedTurn /= 2;
-        reachedRiver /= 2;
+    public double ultimateOpponentWinFrequency(){
+        if (ultimateGames == 0)
+            return 0;
+        return ((double) ultimateWins) / ultimateGames;
+    }
+    
+    public void ultimateRaiseStandards(){
+        numBigBets = (int) (0.75 * numBigBets);
+        ultimateGames = 0;
+        ultimateWins = 0;
+    }
+    
+    public void clear(){
+        numHands = 0;
+        preFlopTypes = new int[4];
+        numBigBets = 0;
+        foldPreFlop = 0;
+        foldFlop = 0;
+        foldTurn = 0;
+        foldRiver = 0;
+        reachedFlop = 0;
+        reachedTurn = 0;
+        reachedRiver = 0;
+        ultimateGames = 0;
+        ultimateWins = 0;
     }
 
     public void printAll(){
@@ -95,6 +113,7 @@ public class Historian {
         System.out.println("Number of hands that reached flop is " + reachedFlop);
         System.out.println("Number of hands that reached turn is " + reachedTurn);
         System.out.println("Number of hands that reached river is " + reachedRiver);
-
+        System.out.println("Number of ultimate games that the opponent won was " + ultimateWins);
+        System.out.println("Number of ultimate games total was " + ultimateGames);
     }
 }

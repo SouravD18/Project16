@@ -10,6 +10,7 @@ public class PreFlop {
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         double r = Math.random();
+        System.out.println("Our equity is currently " + equity);
 
         if (Brain.handsIn < 50){ //not enough info yet, play default
             if (turn == 1){
@@ -24,7 +25,7 @@ public class PreFlop {
                             return action.call(); //20% we just call
                         }
                     } else if (equity >= goodEquity){
-                        return action.bet(callAmount + (int) evForCall);
+                        return action.bet(4);
                     } else if (equity >= badEquity){
                         if(evForCall > 0){
                             return action.call();
@@ -40,14 +41,10 @@ public class PreFlop {
                         if (action.raisePossible){ //the opponent has raised
                             return action.bet(Brain.maxStackSize);
                         } else { //the opponent has just called
-                            return action.bet(4);
+                            return action.bet(action.lowerRange);
                         }
                     } else if (equity >= goodEquity){
-                        if (action.raisePossible){ //opponent raised
-                            return action.bet(callAmount + (int) evForCall);
-                        } else { //opponent has called
-                            return action.call();
-                        }
+                        return action.bet(action.lowerRange);
                     } else if (equity >= badEquity && evForCall > 0){
                         return action.call();
                     } else { //terrible equity or negative EV
@@ -70,36 +67,48 @@ public class PreFlop {
 
         } else { //it's been over 100 turns, we can start analyzing data
 
-            if (turn == 1 && isButton){ //we go first
-                if (equity >= greatEquity){
-                    double probFolding = historian.foldPreFlopFrequency();
-                    if (r > probFolding){
-                        return action.bet(Brain.maxStackSize);
-                    } else if (r > probFolding/2) {
+            if (turn == 1){ 
+                if (isButton){ //we go first
+                    if (equity >= greatEquity){
+                        double probFolding = historian.foldPreFlopFrequency();
+                        if (r > probFolding){
+                            return action.bet(Brain.maxStackSize);
+                        } else if (r > probFolding/2) {
+                            return action.bet(4);
+                        } else {
+                            return action.call();
+                        }
+                    } else if (equity >= goodEquity){
                         return action.bet(4);
-                    } else {
-                        return action.call();
-                    }
-                } else if (equity >= goodEquity){
-                    return action.bet(callAmount + (int) evForCall);
-                } else if (equity >= badEquity){
-                    if(evForCall > 0){
-                        return action.call();
-                    } else {
+                    } else if (equity >= badEquity){
+                        if(evForCall > 0){
+                            return action.call();
+                        } else {
+                            return action.check();
+                        }
+                    } else { //terrible equity
                         return action.check();
                     }
+                    
+                } else { //first turn, we go second as BB
+                    double avgPercentileOfOpponentPlayedHands = historian.preFlopTypePercentile(preFlopType);
+                    double ourPercentile = Main.convertEquityToPercentile(equity, 0);
+                    double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
+                    if (difference > 0.1)
+                        return action.bet(Brain.maxStackSize); 
+                    else if (difference > -0.1)
+                        return action.call();
+                    else return action.check();
+                }
+                
+            } else { //2nd turn
+                if (equity >= greatEquity){
+                    return action.bet(Brain.maxStackSize);
+                } else if (equity >= goodEquity || equity >= badEquity && evForCall > 0){
+                    return action.call();
                 } else { //terrible equity
                     return action.check();
                 }
-            } else { //we're acting in response to something
-                double avgPercentileOfOpponentPlayedHands = historian.preFlopTypePercentile(preFlopType);
-                double ourPercentile = Main.convertEquityToPercentile(equity, 0);
-                double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
-                if (difference > 0.2)
-                    return action.bet(Brain.maxStackSize); 
-                else if (difference > -0.1)
-                    return action.call();
-                else return action.check();
             }
         }
 

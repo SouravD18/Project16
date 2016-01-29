@@ -24,7 +24,7 @@ public class DumpAnalyzer {
     public static void main(String[] args) throws IOException{
         List<File> files = allFilesInFolder(new File(DIRECTORY));
         for (File f: files)
-            printInformation(f);
+            printMonies(f);
     }
     
     public static List<File> allFilesInFolder(File folder){
@@ -64,6 +64,20 @@ public class DumpAnalyzer {
         }
 
         System.out.println(Arrays.toString(monies));
+        br.close();
+    }
+    
+    public static void printMonies(File f) throws IOException{
+        BufferedReader br = new BufferedReader(new FileReader(f));
+        String currentLine;
+        while ((currentLine = br.readLine()) != null){
+            if (currentLine.contains("wins the pot")){
+                String[] strings = currentLine.split(" ");
+                int value = Integer.parseInt(strings[4].substring(1, strings[4].length() - 1));
+                System.out.println(value);
+            }
+        }
+        
         br.close();
     }
     

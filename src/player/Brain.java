@@ -8,10 +8,12 @@ import equity.poker.Main;
 
 public class Brain {
     ProcessActions action = new ProcessActions();
-    Historian historian = new Historian();
-    PostFlop postFlop = new PostFlop(3, historian);
-    PostFlop turn = new PostFlop(4, historian);
-    PostFlop river = new PostFlop(5, historian);
+    Historian h1 = new Historian();
+    Historian h2 = new Historian();
+    Historian historian = h1;
+    PostFlop postFlop = new PostFlop(3);
+    PostFlop turn = new PostFlop(4);
+    PostFlop river = new PostFlop(5);
 
     String myName;
     String opponentName;
@@ -35,6 +37,7 @@ public class Brain {
     int preFlopType = 0; //what the opponent does preflop (with it being the SB), 
     //0= check, 1 = raise 4, 2 = raise 5, 3 = raise 6
     boolean hadBigBet;
+    boolean isSlowPlay;
 
     // Turn Counter keep track of turns: 
     // Preflop = 0; Flop = 3; Turn = 4; River = 5;
@@ -103,6 +106,7 @@ public class Brain {
         this.riverBetTurn = 0;
         this.turnCounter = 0;
         this.hadBigBet = false;
+        this.isSlowPlay = false;
         this.preFlopType = 0;
     }
 
@@ -160,7 +164,8 @@ public class Brain {
                 if (opponentAction.actionType().equals("RAISE")){
                     preFlopType = opponentAction.amount() - 3;
                 } //else preFlopType = 0;
-                historian.preFlopTypes[preFlopType]++;
+                h1.preFlopTypes[preFlopType]++;
+                h2.preFlopTypes[preFlopType]++;
             }
         }
         return PreFlop.takeAction(action, equity, currentPot, preFlopBetTurn, isButton, historian, preFlopType);
@@ -179,11 +184,11 @@ public class Brain {
         
         if (opponentAction.actionType().equals("BET") || opponentAction.actionType().equals("RAISE")){
             int bet = opponentAction.amount();
-            if (bet >= 16 && bet*2.1 >= currentPot)
+            if ((bet >= 12 && bet*2.2 >= currentPot) || bet >= 50)
                 hadBigBet = true;
         }
         
-        return postFlop.takeAction(this.action, this.equity, this.currentPot, this.flopBetTurn, this.isButton, hadBigBet);
+        return postFlop.takeAction(action, equity, currentPot, flopBetTurn, isButton, historian, hadBigBet);
     }    
 
     private String turn(){
@@ -200,11 +205,11 @@ public class Brain {
         
         if (opponentAction.actionType().equals("BET") || opponentAction.actionType().equals("RAISE")){
             int bet = opponentAction.amount();
-            if (bet >= 16 && bet*2.1 >= currentPot)
+            if ((bet >= 12 && bet*2.2 >= currentPot) || bet >= 50)
                 hadBigBet = true;
         }
         
-        return turn.takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn, this.isButton, hadBigBet);
+        return turn.takeAction(action, equity, currentPot, turnBetTurn, isButton, historian, hadBigBet);
     }
 
     private String river(){
@@ -222,30 +227,40 @@ public class Brain {
         
         if (opponentAction.actionType().equals("BET") || opponentAction.actionType().equals("RAISE")){
             int bet = opponentAction.amount();
-            if (bet >= 16 && bet*2.1 >= currentPot)
+            if ((bet >= 12 && bet*2.2 >= currentPot) || bet >= 50)
                 hadBigBet = true;
         }
         
-        return river.takeAction(this.action, this.equity, this.currentPot, this.turnBetTurn, this.isButton, hadBigBet);
+        return river.takeAction(action, equity, currentPot, turnBetTurn, isButton, historian, hadBigBet);
     }
 
     public void updateAfterHandOver(Action[] givenActions){
-        if (hadBigBet)
-            historian.numBigBets++;
-        historian.numHands++;
+        if (hadBigBet){
+            h1.numBigBets++;
+            h2.numBigBets++;
+        }
+            
+        h1.numHands++;
+        h2.numHands++;
 
         switch(turnCounter){
         case 3:
-            historian.reachedFlop++;
+            h1.reachedFlop++;
+            h2.reachedFlop++;
             break;
         case 4:
-            historian.reachedFlop++;
-            historian.reachedTurn++;
+            h1.reachedFlop++;
+            h1.reachedTurn++;
+            h2.reachedFlop++;
+            h2.reachedTurn++;
             break;
         case 5:
-            historian.reachedFlop++;
-            historian.reachedTurn++;
-            historian.reachedRiver++;
+            h1.reachedFlop++;
+            h1.reachedTurn++;
+            h1.reachedRiver++;
+            h2.reachedFlop++;
+            h2.reachedTurn++;
+            h2.reachedRiver++;
             break;
         }
 
@@ -253,24 +268,48 @@ public class Brain {
             if (a.actionType().equals("FOLD") && a.actor().equals(opponentName)){
                 switch (turnCounter){
                 case 0:
-                    historian.foldPreFlop++;
+                    h1.foldPreFlop++;
+                    h2.foldPreFlop++;
                     break;
                 case 3:
-                    historian.foldFlop++;
+                    h1.foldFlop++;
+                    h2.foldFlop++;
                     break;
                 case 4:
-                    historian.foldTurn++;
+                    h1.foldTurn++;
+                    h2.foldTurn++;
                     break;
                 case 5:
-                    historian.foldRiver++;
+                    h1.foldRiver++;
+                    h2.foldRiver++;
                     break;
+                }
+            }
+            
+            if (a.actionType().equals("WIN") && a.amount() == 800){
+                h1.ultimateGames++;
+                h2.ultimateGames++;
+                if (a.actor().equals(opponentName)){
+                    h1.ultimateWins++;
+                    h2.ultimateWins++;
                 }
             }
         }
         
-        if (historian.numHands >= 1500)
-            historian.halveEverything();
+        if (historian.ultimateOpponentWinFrequency() >= 0.7 && historian.ultimateGames >= 10){
+            System.out.println("Reducing bigBets to 3/4 of its original value");
+            h1.ultimateRaiseStandards();
+            h2.ultimateRaiseStandards();
+        }
         
+        if (historian.numHands % 1000 == 0){
+            historian.clear();
+            if (h1.numHands != 0){
+                historian = h1;
+            } else {
+                historian = h2;
+            }
+        }
         historian.printAll();
     }
 }

@@ -3,20 +3,18 @@ package player;
 import equity.poker.Main;
 
 public class PostFlop {
-    final double greatEquity;
-    final double goodEquity;
-    final double badEquity;
-    final double greatCEquity;
-    final double goodCEquity;
-    final double badCEquity;
-    final double equity96;
-    final double equity86;
+    double greatEquity;
+    double goodEquity;
+    double badEquity;
+    double greatCEquity;
+    double goodCEquity;
+    double badCEquity;
+    double equity96;
+    double equity76;
     final int turnCounter;
-    final Historian historian;
-    
-    public PostFlop(int turnCounter, Historian h){
+
+    public PostFlop(int turnCounter){
         this.turnCounter = turnCounter;
-        historian = h;
         switch (turnCounter){
         case 3:
             greatEquity = Constants.flopGreat;
@@ -26,7 +24,7 @@ public class PostFlop {
             goodCEquity = Constants.flopCGood;
             badCEquity = Constants.flopCAverage;
             equity96 = Constants.flop96;
-            equity86 = Constants.flop86;
+            equity76 = Constants.flop76;
             break;
         case 4:
             greatEquity = Constants.turnGreat;
@@ -36,7 +34,7 @@ public class PostFlop {
             goodCEquity = Constants.turnCGood;
             badCEquity = Constants.turnCAverage;
             equity96 = Constants.turn96;
-            equity86 = Constants.turn86;
+            equity76 = Constants.turn76;
             break;
         case 5:
             greatEquity = Constants.riverGreat;
@@ -46,71 +44,76 @@ public class PostFlop {
             goodCEquity = Constants.riverCGood;
             badCEquity = Constants.riverCAverage;
             equity96 = Constants.river96;
-            equity86 = Constants.river86;
+            equity76 = Constants.river76;
             break;
         default:
             throw new RuntimeException();
         }
     }
-    
-    public String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton, boolean hadBigBet){
+
+    public String takeAction(ProcessActions action, double equity, int potSize, int turn, boolean isButton, Historian historian, boolean hadBigBet){
         int callAmount = action.callAmount();
         double evForCall = (potSize)*equity - (callAmount)*(1-equity);
         double r = Math.random();
         double probFolding = historian.foldFrequency(turnCounter);
         System.out.println("Our equity is currently " + equity);
-        
+
 
         if (Brain.handsIn < 100){ //not enough info yet, play default
-            if (turn == 1){
-                if (hadBigBet){
-                    if (equity >= equity96){
+            
+            if (hadBigBet){
+                if (equity >= equity96){
+                    return action.bet(Brain.maxStackSize);
+                } else if (equity >= equity76) {
+                    return action.call();
+                } else return action.check();
+            }
+
+            else if (turn == 1){ //turn 1
+                if (!isButton){ //no big bet, we're acting first
+                    if(equity >= greatCEquity){
                         return action.bet(Brain.maxStackSize);
-                    } else if (equity >= equity86) {
-                       return action.call();
-                    } else return action.check();
-                    
-                } else {
-                    if (!isButton){ //We're the BB and act first here
-                        if(equity >= greatCEquity){
-                            return action.bet(Brain.maxStackSize);
-                        }
-                        else if (equity >= goodCEquity){
-                            return action.bet(callAmount + (int) evForCall);
-                        }
-                        else if (equity >= badCEquity){
-                            if(evForCall > 0){
-                                return action.call();
-                            } else {
-                                return action.check();
-                            }
+                    }
+                    else if (equity >= goodCEquity){
+                        if (potSize < 50)
+                            return action.bet(Math.min(25, callAmount + (int) evForCall));
+                        else return action.call();
+                    }
+                    else if (equity >= badCEquity){
+                        if(evForCall > 0){
+                            return action.call();
                         } else {
                             return action.check();
                         }
+                    } else {
+                        return action.check();
+                    }
 
 
-                    } else { //we're acting in response to something
-                        if (equity >= greatCEquity){
-                            if (action.raisePossible){ //the opponent has raised
-                                return action.bet(Brain.maxStackSize);
-                            } else { //the opponent has just called
-                                return action.bet(4); //we'll bet low here
-                            }
-                        } else if (equity >= goodCEquity){
-                            if (action.raisePossible){ //opponent raised
-                                return action.bet(callAmount + (int) evForCall);
-                            } else { //opponent has called
-                                return action.call();
-                            }
-                        } else if (equity >= badCEquity && evForCall > 0){
-                            return action.call();
-                        } else { //terrible equity or negative EV
-                            return action.check();
+                } else { //no big bet, we're acting second
+                    if (equity >= greatCEquity){
+                        if (action.raisePossible){ //the opponent has raised
+                            return action.bet(Brain.maxStackSize);
+                        } else { //the opponent has just called
+                            return action.bet(4); //we'll bet low here
                         }
+                    } else if (equity >= goodCEquity){
+                        if (action.raisePossible){ //opponent raised
+                            if (potSize < 50)
+                                return action.bet(Math.min(25, callAmount + (int) evForCall));
+                            else return action.call();
+                        } else { //opponent has called
+                            return action.call();
+                        }
+                    } else if (equity >= badCEquity && evForCall > 0){
+                        return action.call();
+                    } else { //terrible equity or negative EV
+                        return action.check();
                     }
                 }
-                
-            } else { //turn >= 2, the opponent must have raised here
+            }
+
+            else { //no big bet, turn 2
                 if (equity >= greatCEquity){
                     return action.bet(Brain.maxStackSize);
                 } else if (equity >= goodCEquity || (equity >= badCEquity && evForCall > 0)){
@@ -121,22 +124,22 @@ public class PostFlop {
             }
 
 
-
         } else { //play 4 real now
-            if (!isButton && turn == 1){ //we act first here
-                if (hadBigBet){
-                    double ourPercentile = Main.convertEquityToPercentile(equity, turnCounter);
-                    double avgPercentileOfOpponentPlayedHands = 1 - historian.bigBetFrequency()/2;
-                    double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
-                    System.out.println("My percentile is " + ourPercentile);
-                    System.out.println("I think the opponent's percentile is " + avgPercentileOfOpponentPlayedHands);
-                    if (difference > 0.01)
-                        return action.bet(Brain.maxStackSize);
-                    else if (difference > -0.10)
-                        return action.call();
-                    else return action.check();
-                    
-                } else {
+            if (hadBigBet){ //has big bet
+                double ourPercentile = Main.convertEquityToPercentile(equity, turnCounter);
+                double avgPercentileOfOpponentPlayedHands = 1 - historian.bigBetFrequency()/2;
+                double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
+                System.out.println("My percentile is " + ourPercentile);
+                System.out.println("I think the opponent's percentile is " + avgPercentileOfOpponentPlayedHands);
+                if (difference > 0)
+                    return action.bet(Brain.maxStackSize);
+                else if (difference > -0.20)
+                    return action.call();
+                else return action.check();
+            }
+
+            else if (turn == 1){
+                if (!isButton){ //no big bet, we're acting first
                     if (equity >= greatCEquity){
                         if (r > probFolding){
                             return action.bet(Brain.maxStackSize);
@@ -146,7 +149,9 @@ public class PostFlop {
                             return action.call();
                         }
                     } else if (equity >= goodCEquity){
-                        return action.bet(callAmount + (int) evForCall);
+                        if (potSize < 50)
+                            return action.bet(Math.min(25, callAmount + (int) evForCall));
+                        else return action.call();
                     } else if (equity >= badCEquity){
                         if(evForCall > 0){
                             return action.call();
@@ -156,39 +161,31 @@ public class PostFlop {
                     } else { //terrible equity
                         return action.check();
                     }
-                }
-                
-            } else { //we're acting in response to something
-                if (hadBigBet){
-                    double ourPercentile = Main.convertEquityToPercentile(equity, turnCounter);
-                    double avgPercentileOfOpponentPlayedHands = 1 - historian.bigBetFrequency()/2;
-                    double difference = ourPercentile - avgPercentileOfOpponentPlayedHands;
-                    System.out.println("My percentile is " + ourPercentile);
-                    System.out.println("I think the opponent's percentile is " + avgPercentileOfOpponentPlayedHands);
-                    if (difference > 0.01)
-                        return action.bet(Brain.maxStackSize);
-                    else if (difference > -0.10)
-                        return action.call();
-                    else return action.check();
-                    
-                } else { //no big bet :(
+
+                } else { //no big bet, we're acting second
                     if (equity >= greatEquity){
                         return action.bet(Brain.maxStackSize);
                     } else if (equity >= goodEquity){
-                        return action.bet(callAmount + (int) evForCall);
-                    } else if (equity >= badEquity){
-                        if(evForCall > 0){
-                            return action.call();
-                        } else {
-                            return action.check();
-                        }
+                        if (potSize < 50)
+                            return action.bet(Math.min(25, callAmount + (int) evForCall));
+                        else return action.call();
+                    } else if (equity >= badEquity && evForCall > 0){
+                        return action.call();
                     } else { //terrible equity
                         return action.check();
                     }
                 }
-
+                
+            } else { //turn 2, no big bet :(
+                if (equity >= greatEquity){
+                    return action.bet(Brain.maxStackSize);
+                } else if (equity >= goodEquity || (equity >= badEquity && evForCall > 0)){
+                    return action.call();
+                } else { //terrible equity
+                    return action.check();
+                }
             }
+
         }
     }
-    
 }
